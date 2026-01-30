@@ -4,13 +4,24 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "functions-framework>=3.10.0",
-]
+dependencies = ["functions-framework>=3.10.0"]
 
 [dependency-groups]
 dev = [
-    "pre-commit>=4.5.1",
-    "pyright>=1.1.408",
-    "ruff>=0.14.14",
+  "pre-commit>=4.5.1",
+  "pyright>=1.1.408",
+  "ruff>=0.14.14",
+  "taskipy>=1.14.1",
 ]
+
+[tool.taskipy.tasks]
+run = { cmd = "functions-framework --target=starwars_func", help = "run API in dev env" }
+
+lint = { cmd = "ruff check", help = "check lint erros" }
+
+pre_format = "ruff check --fix"
+format = { cmd = "ruff format", help = "format the code" }
+
+commit = { cmd = "pre-commit run --all-files", help = "runs pre commit" }
+
+type = { cmd = "pyright", help = "runs pyright to check types" }
