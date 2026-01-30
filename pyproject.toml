@@ -13,6 +13,8 @@ dependencies = [
 dev = [
   "pre-commit>=4.5.1",
   "pyright>=1.1.408",
+  "pytest>=9.0.2",
+  "pytest-cov>=7.0.0",
   "ruff>=0.14.14",
   "taskipy>=1.14.1",
 ]
@@ -28,3 +30,7 @@ format = { cmd = "ruff format", help = "format the code" }
 commit = { cmd = "pre-commit run --all-files", help = "runs pre commit" }
 
 type = { cmd = "pyright", help = "runs pyright to check types" }
+
+test = { cmd="pytest", help="run all tests"}
+
+cover = { cmd="coverage report", help="show code coverage"}
