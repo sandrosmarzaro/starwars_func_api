@@ -1,0 +1,11 @@
+
+target-version = 'py313'
+line-length = 79
+exclude = ['app/migrations/', '.coveragerc']
+
+[format]
+quote-style = 'single'
+
+[lint]
+select = ['ALL']
+ignore = ['D', 'B008', 'Q000', 'Q001', 'Q002', 'Q003', 'S101', 'COM812']
