@@ -1,0 +1,21 @@
+{
+  "include": [
+    "./"
+  ],
+  "exclude": [
+    ".venv",
+    ".*_cache/",
+    "**/__pycache__",
+    "htmlcov/",
+    "app/migrations",
+    ".coveragerc",
+  ],
+  "ignore": [
+    ".coveragerc"
+  ],
+  "pythonVersion": "3.13",
+  "venvPath": ".",
+  "venv": ".venv",
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true
+}

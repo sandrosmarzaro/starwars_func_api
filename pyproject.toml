@@ -7,3 +7,8 @@ requires-python = ">=3.13"
 dependencies = [
     "functions-framework>=3.10.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.408",
+]
