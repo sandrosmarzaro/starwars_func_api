@@ -4,4 +4,6 @@ from flask import Flask
 
 @pytest.fixture
 def app() -> Flask:
-    return Flask(__name__)
+    app = Flask(__name__)
+    app.testing = True
+    return app
