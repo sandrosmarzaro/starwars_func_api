@@ -1,0 +1,7 @@
+[run]
+branch = True
+parallel = True
+
+[report]
+skip_covered = True
+skip_empty = True

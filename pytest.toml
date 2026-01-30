@@ -1,0 +1,18 @@
+[pytest]
+minversion = '9.0'
+console_output_style = 'times'
+addopts = [
+  '-vv',                      # Increase verbosity
+  '-x',                       # Exit instantly on first error or failed test
+  '-s',                       # Shortcut for --capture=no
+  '--cov=.',
+  '--cov-report=term',
+  '--cov-report=xml',
+  '--cov-config=.coveragerc',
+]
+strict = true
+log_cli = true
+log_cli_level = 'INFO'
+pythonpath = ['.']
+testpaths = ['./tests/']
+filterwarnings = ['ignore::DeprecationWarning:importlib._bootstrap']
