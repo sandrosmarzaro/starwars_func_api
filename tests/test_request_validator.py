@@ -32,7 +32,8 @@ class TestRequestValidator:
                 is_valid, error = RequestValidator.validate(request)
 
                 assert is_valid is False
-                assert error == MethodNotAllowedError
+                assert error is not None
+                assert error.to_dict() == MethodNotAllowedError().to_dict()
 
     def test_should_error_when_not_exist_resource(self, app: Flask) -> None:
         with app.test_request_context(
@@ -41,14 +42,16 @@ class TestRequestValidator:
             is_valid, error = RequestValidator.validate(request)
 
             assert is_valid is False
-            assert error == NotFoundError
+            assert error is not None
+            assert error.to_dict() == NotFoundError().to_dict()
 
     def test_should_error_when_not_passed_resource(self, app: Flask) -> None:
         with app.test_request_context(f'{self.BASE_URL}', method='GET'):
             is_valid, error = RequestValidator.validate(request)
 
             assert is_valid is False
-            assert error == BadRequestError
+            assert error is not None
+            assert error.to_dict() == BadRequestError().to_dict()
 
     def test_should_error_when_page_is_not_int(self, app: Flask) -> None:
         with app.test_request_context(
@@ -57,7 +60,8 @@ class TestRequestValidator:
             is_valid, error = RequestValidator.validate(request)
 
             assert is_valid is False
-            assert error == BadRequestError
+            assert error is not None
+            assert error.to_dict() == BadRequestError().to_dict()
 
     def test_should_error_when_id_is_not_int(self, app: Flask) -> None:
         with app.test_request_context(
@@ -66,7 +70,30 @@ class TestRequestValidator:
             is_valid, error = RequestValidator.validate(request)
 
             assert is_valid is False
-            assert error == BadRequestError
+            assert error is not None
+            assert error.to_dict() == BadRequestError().to_dict()
+
+    def test_should_error_when_use_id_and_search(self, app: Flask) -> None:
+        with app.test_request_context(
+            f'{self.BASE_URL}?resource=people&id=0&search=something',
+            method='GET',
+        ):
+            is_valid, error = RequestValidator.validate(request)
+
+            assert is_valid is False
+            assert error is not None
+            assert error.to_dict() == BadRequestError().to_dict()
+
+    def test_should_error_when_use_id_and_page(self, app: Flask) -> None:
+        with app.test_request_context(
+            f'{self.BASE_URL}?resource=people&id=0&page=2',
+            method='GET',
+        ):
+            is_valid, error = RequestValidator.validate(request)
+
+            assert is_valid is False
+            assert error is not None
+            assert error.to_dict() == BadRequestError().to_dict()
 
     def test_validate_successful_resources_request(self, app: Flask) -> None:
         valid_resources = [
