@@ -17,6 +17,9 @@ class BaseError:
             }
         )
 
+    def __repr__(self) -> str:
+        return f'{self.name}(status={self.status},message={self.message})'
+
 
 class MethodNotAllowedError(BaseError):
     name = HTTPStatus.METHOD_NOT_ALLOWED.name
