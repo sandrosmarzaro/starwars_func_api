@@ -1,6 +1,10 @@
 from flask import Flask, request
 
-from exceptions.errors import MethodNotAllowedError, NotFoundError
+from exceptions.errors import (
+    BadRequestError,
+    MethodNotAllowedError,
+    NotFoundError,
+)
 from validators.request_validator import RequestValidator
 
 
@@ -39,7 +43,32 @@ class TestRequestValidator:
             assert is_valid is False
             assert error == NotFoundError
 
-    def test_validate_successful_request(self, app: Flask) -> None:
+    def test_should_error_when_not_passed_resource(self, app: Flask) -> None:
+        with app.test_request_context(f'{self.BASE_URL}', method='GET'):
+            is_valid, error = RequestValidator.validate(request)
+
+            assert is_valid is False
+            assert error == BadRequestError
+
+    def test_should_error_when_page_is_not_int(self, app: Flask) -> None:
+        with app.test_request_context(
+            f'{self.BASE_URL}?resource=people&page=a', method='GET'
+        ):
+            is_valid, error = RequestValidator.validate(request)
+
+            assert is_valid is False
+            assert error == BadRequestError
+
+    def test_should_error_when_id_is_not_int(self, app: Flask) -> None:
+        with app.test_request_context(
+            f'{self.BASE_URL}?resource=people&id=a', method='GET'
+        ):
+            is_valid, error = RequestValidator.validate(request)
+
+            assert is_valid is False
+            assert error == BadRequestError
+
+    def test_validate_successful_resources_request(self, app: Flask) -> None:
         valid_resources = [
             'films',
             'people',
