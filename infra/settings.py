@@ -9,7 +9,7 @@ class _Settings(BaseSettings):
         env_file_encoding='utf-8',
         extra='ignore',
     )
-    SWAPI_BASE_URL: str = 'https://swapi.dev/api'
+    SWAPI_BASE_URL: str = 'https://swapi.dev/api/'
 
 
 @lru_cache
