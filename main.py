@@ -37,7 +37,7 @@ def starwars_func(request: Request) -> tuple[Response, int, dict]:
 def _get_swapi_data(params: dict) -> Response:
     resource = params.get('resource')
     resource_id = params.get('id')
-    base_url = urljoin(settings.SWAPI_BASE_URL, resource)
+    base_url = urljoin(settings.SWAPI_BASE_URL, f'{resource}/')
 
     if resource_id:
         base_url = urljoin(base_url, resource_id)
@@ -46,6 +46,7 @@ def _get_swapi_data(params: dict) -> Response:
         key: params[key] for key in ('search', 'page') if params.get(key)
     }
 
+    logger.debug(base_url)
     with httpx.Client() as client:
         response = client.get(base_url, params=query_params)
         response.raise_for_status()
