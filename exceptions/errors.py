@@ -31,3 +31,9 @@ class NotFoundError(BaseError):
     name = HTTPStatus.NOT_FOUND.name
     message = HTTPStatus.NOT_FOUND.description
     status = HTTPStatus.NOT_FOUND.value
+
+
+class BadRequestError(BaseError):
+    name = HTTPStatus.BAD_REQUEST.name
+    message = HTTPStatus.BAD_REQUEST.description
+    status = HTTPStatus.BAD_REQUEST.value
