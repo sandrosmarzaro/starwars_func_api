@@ -47,3 +47,13 @@ class BadRequestError(BaseError):
         status: int = HTTPStatus.BAD_REQUEST.value,
     ) -> None:
         super().__init__(name, message, status)
+
+
+class InternalServerError(BaseError):
+    def __init__(
+        self,
+        name: str = HTTPStatus.INTERNAL_SERVER_ERROR.name,
+        message: str = HTTPStatus.INTERNAL_SERVER_ERROR.description,
+        status: int = HTTPStatus.INTERNAL_SERVER_ERROR.value,
+    ) -> None:
+        super().__init__(name, message, status)
