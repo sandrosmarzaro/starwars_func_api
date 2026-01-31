@@ -42,8 +42,15 @@ class RequestValidator:
             return (False, error)
 
         try:
-            SwapiQueryParams.model_validate(request.args)
+            validated_params = SwapiQueryParams.model_validate(request.args)
         except ValidationError:
+            error = BadRequestError()
+            logger.warning(error)
+            return (False, error)
+
+        if validated_params.id is not None and (
+            validated_params.search or validated_params.page
+        ):
             error = BadRequestError()
             logger.warning(error)
             return (False, error)
