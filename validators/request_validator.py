@@ -16,16 +16,18 @@ class RequestValidator:
     def validate(
         cls,
         request: Request,
-    ) -> tuple[bool, type[BaseError] | None]:
+    ) -> tuple[bool, BaseError | None]:
         if request.method != 'GET':
-            logger.warning(MethodNotAllowedError)
-            return (False, MethodNotAllowedError)
+            error = MethodNotAllowedError()
+            logger.warning(error)
+            return (False, error)
 
         params = request.args
         resource = params.get('resource')
         if not resource:
-            logger.warning(BadRequestError)
-            return (False, BadRequestError)
+            error = BadRequestError()
+            logger.warning(error)
+            return (False, error)
         resources = [
             'films',
             'people',
@@ -35,13 +37,15 @@ class RequestValidator:
             'vehicles',
         ]
         if resource not in resources:
-            logger.warning(NotFoundError)
-            return (False, NotFoundError)
+            error = NotFoundError()
+            logger.warning(error)
+            return (False, error)
 
         try:
             SwapiQueryParams.model_validate(request.args)
         except ValidationError:
-            logger.warning(BadRequestError)
-            return (False, BadRequestError)
+            error = BadRequestError()
+            logger.warning(error)
+            return (False, error)
 
         return (True, None)

@@ -27,7 +27,7 @@ def starwars_func(request: Request) -> tuple[Response, int, dict]:
 
     is_valid_request, error = RequestValidator.validate(request)
     if not is_valid_request and error is not None:
-        return (error.to_response(), error.status, headers)
+        return (jsonify(error.to_dict()), error.status, headers)
 
     swapi_data = _get_swapi_data(request.args)
 

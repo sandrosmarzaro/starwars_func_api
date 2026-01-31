@@ -1,39 +1,49 @@
 from http import HTTPStatus
 
-from flask import Response, jsonify
 
+class BaseError(Exception):
+    def __init__(self, name: str, message: str, status: int) -> None:
+        super().__init__()
+        self.name = name
+        self.message = message
+        self.status = status
 
-class BaseError:
-    name: str
-    message: str
-    status: int
+    def to_dict(self) -> dict[str, str | int]:
+        return {
+            'error': self.name,
+            'message': self.message,
+            'status': self.status,
+        }
 
-    @classmethod
-    def to_response(cls) -> Response:
-        return jsonify(
-            {
-                'error': cls.name,
-                'message': cls.message,
-            }
-        )
-
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f'{self.name}(status={self.status},message={self.message})'
 
 
 class MethodNotAllowedError(BaseError):
-    name = HTTPStatus.METHOD_NOT_ALLOWED.name
-    message = HTTPStatus.METHOD_NOT_ALLOWED.description
-    status = HTTPStatus.METHOD_NOT_ALLOWED.value
+    def __init__(
+        self,
+        name: str = HTTPStatus.METHOD_NOT_ALLOWED.name,
+        message: str = HTTPStatus.METHOD_NOT_ALLOWED.description,
+        status: int = HTTPStatus.METHOD_NOT_ALLOWED.value,
+    ) -> None:
+        super().__init__(name, message, status)
 
 
 class NotFoundError(BaseError):
-    name = HTTPStatus.NOT_FOUND.name
-    message = HTTPStatus.NOT_FOUND.description
-    status = HTTPStatus.NOT_FOUND.value
+    def __init__(
+        self,
+        name: str = HTTPStatus.NOT_FOUND.name,
+        message: str = HTTPStatus.NOT_FOUND.description,
+        status: int = HTTPStatus.NOT_FOUND.value,
+    ) -> None:
+        super().__init__(name, message, status)
 
 
 class BadRequestError(BaseError):
-    name = HTTPStatus.BAD_REQUEST.name
-    message = HTTPStatus.BAD_REQUEST.description
-    status = HTTPStatus.BAD_REQUEST.value
+    def __init__(
+        self,
+        name: str = HTTPStatus.BAD_REQUEST.name,
+        message: str = HTTPStatus.BAD_REQUEST.description,
+        status: int = HTTPStatus.BAD_REQUEST.value,
+    ) -> None:
+        super().__init__(name, message, status)
