@@ -48,3 +48,7 @@ def register_error_handlers(app: Flask) -> None:
 @functions_framework.errorhandler(HTTPError)
 def handle_httpx_errors(exc: HTTPError) -> tuple[Response, int, dict]:
     return _handle_httpx_error(exc)
+
+
+def setup() -> None:
+    pass

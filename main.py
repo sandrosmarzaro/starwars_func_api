@@ -6,10 +6,12 @@ import httpx
 from flask import Request, Response, jsonify
 from loguru import logger
 
-from exceptions import error_handler  # noqa: F401
+from exceptions import error_handler
 from infra.settings import settings
 from utils.cors import build_cors_headers, build_cors_options_headers
 from validators.request_validator import RequestValidator
+
+error_handler.setup()
 
 
 @functions_framework.http
