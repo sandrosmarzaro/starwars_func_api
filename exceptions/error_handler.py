@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 import functions_framework
-from flask import Flask, Response, jsonify
+from flask import Flask
 from httpx import HTTPError, HTTPStatusError
 from loguru import logger
 from pydantic import ValidationError
@@ -13,7 +13,8 @@ from exceptions.errors import (
     MethodNotAllowedError,
     NotFoundError,
 )
-from utils.cors import build_cors_headers
+from models.api_response import ApiResponse
+from utils.response import error_response
 
 _HTTP_EXCEPTION_MAPPING = {
     HTTPStatus.BAD_REQUEST.value: BadRequestError,
@@ -34,29 +35,20 @@ def _create_error_from_httpx(exc: HTTPError) -> BaseError:
     return InternalServerError()
 
 
-def _handle_httpx_error(exc: HTTPError) -> tuple[Response, int, dict]:
+def _handle_httpx_error(exc: HTTPError) -> ApiResponse:
     logger.error(exc)
     error = _create_error_from_httpx(exc)
-    headers = build_cors_headers()
-
-    return (jsonify(error.to_dict()), error.status, headers)
+    return error_response(error)
 
 
-def _handle_api_error(exc: BaseError) -> tuple[Response, int, dict]:
+def _handle_api_error(exc: BaseError) -> ApiResponse:
     logger.warning(exc)
-    headers = build_cors_headers()
-
-    return (jsonify(exc.to_dict()), exc.status, headers)
+    return error_response(exc)
 
 
-def _handle_validation_error(
-    exc: ValidationError,
-) -> tuple[Response, int, dict]:
+def _handle_validation_error(exc: ValidationError) -> ApiResponse:
     logger.warning(exc)
-    error = BadRequestError()
-    headers = build_cors_headers()
-
-    return (jsonify(error.to_dict()), error.status, headers)
+    return error_response(BadRequestError())
 
 
 def register_error_handlers(app: Flask) -> None:
@@ -66,19 +58,17 @@ def register_error_handlers(app: Flask) -> None:
 
 
 @functions_framework.errorhandler(HTTPError)
-def handle_httpx_errors(exc: HTTPError) -> tuple[Response, int, dict]:
+def handle_httpx_errors(exc: HTTPError) -> ApiResponse:
     return _handle_httpx_error(exc)
 
 
 @functions_framework.errorhandler(BaseError)
-def handle_api_erros(exc: BaseError) -> tuple[Response, int, dict]:
+def handle_api_erros(exc: BaseError) -> ApiResponse:
     return _handle_api_error(exc)
 
 
 @functions_framework.errorhandler(ValidationError)
-def handle_validation_error(
-    exc: ValidationError,
-) -> tuple[Response, int, dict]:
+def handle_validation_error(exc: ValidationError) -> ApiResponse:
     return _handle_validation_error(exc)
 
 
