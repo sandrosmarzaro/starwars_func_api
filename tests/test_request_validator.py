@@ -1,10 +1,10 @@
-from flask import Flask, request
+from http import HTTPStatus
 
-from exceptions.errors import (
-    BadRequestError,
-    MethodNotAllowedError,
-    NotFoundError,
-)
+import pytest
+from flask import Flask, request
+from pydantic import ValidationError
+
+from exceptions.errors import BadRequestError, MethodNotAllowedError
 from validators.request_validator import RequestValidator
 
 
@@ -26,74 +26,94 @@ class TestRequestValidator:
         ]
 
         for method in not_allowed_methods:
-            with app.test_request_context(
-                f'{self.BASE_URL}?resource=people', method=method
+            with (
+                app.test_request_context(
+                    f'{self.BASE_URL}?resource=people', method=method
+                ),
+                pytest.raises(MethodNotAllowedError) as exc_info,
             ):
-                is_valid, error = RequestValidator.validate(request)
+                RequestValidator.validate(request)
 
-                assert is_valid is False
-                assert error is not None
-                assert error.to_dict() == MethodNotAllowedError().to_dict()
+            assert exc_info.value.status == HTTPStatus.METHOD_NOT_ALLOWED.value
+            assert (
+                exc_info.value.to_dict() == MethodNotAllowedError().to_dict()
+            )
 
     def test_should_error_when_not_exist_resource(self, app: Flask) -> None:
-        with app.test_request_context(
-            f'{self.BASE_URL}?resource=nonexists', method='GET'
+        with (
+            app.test_request_context(
+                f'{self.BASE_URL}?resource=nonexists', method='GET'
+            ),
+            pytest.raises(ValidationError) as exc_info,
         ):
-            is_valid, error = RequestValidator.validate(request)
+            RequestValidator.validate(request)
 
-            assert is_valid is False
-            assert error is not None
-            assert error.to_dict() == NotFoundError().to_dict()
+        assert exc_info.value.error_count() == 1
+        assert exc_info.value.errors()[0]['loc'] == ('resource',)
+        assert exc_info.value.errors()[0]['type'] == 'literal_error'
 
     def test_should_error_when_not_passed_resource(self, app: Flask) -> None:
-        with app.test_request_context(f'{self.BASE_URL}', method='GET'):
-            is_valid, error = RequestValidator.validate(request)
+        with (
+            app.test_request_context(f'{self.BASE_URL}', method='GET'),
+            pytest.raises(ValidationError) as exc_info,
+        ):
+            RequestValidator.validate(request)
 
-            assert is_valid is False
-            assert error is not None
-            assert error.to_dict() == BadRequestError().to_dict()
+        assert exc_info.value.error_count() == 1
+        assert exc_info.value.errors()[0]['loc'] == ('resource',)
+        assert exc_info.value.errors()[0]['type'] == 'missing'
 
     def test_should_error_when_page_is_not_int(self, app: Flask) -> None:
-        with app.test_request_context(
-            f'{self.BASE_URL}?resource=people&page=a', method='GET'
+        with (
+            app.test_request_context(
+                f'{self.BASE_URL}?resource=people&page=a', method='GET'
+            ),
+            pytest.raises(ValidationError) as exc_info,
         ):
-            is_valid, error = RequestValidator.validate(request)
+            RequestValidator.validate(request)
 
-            assert is_valid is False
-            assert error is not None
-            assert error.to_dict() == BadRequestError().to_dict()
+        assert exc_info.value.error_count() == 1
+        assert exc_info.value.errors()[0]['loc'] == ('page',)
+        assert exc_info.value.errors()[0]['type'] == 'int_parsing'
 
     def test_should_error_when_id_is_not_int(self, app: Flask) -> None:
-        with app.test_request_context(
-            f'{self.BASE_URL}?resource=people&id=a', method='GET'
+        with (
+            app.test_request_context(
+                f'{self.BASE_URL}?resource=people&id=a', method='GET'
+            ),
+            pytest.raises(ValidationError) as exc_info,
         ):
-            is_valid, error = RequestValidator.validate(request)
+            RequestValidator.validate(request)
 
-            assert is_valid is False
-            assert error is not None
-            assert error.to_dict() == BadRequestError().to_dict()
+        assert exc_info.value.error_count() == 1
+        assert exc_info.value.errors()[0]['loc'] == ('id',)
+        assert exc_info.value.errors()[0]['type'] == 'int_parsing'
 
     def test_should_error_when_use_id_and_search(self, app: Flask) -> None:
-        with app.test_request_context(
-            f'{self.BASE_URL}?resource=people&id=0&search=something',
-            method='GET',
+        with (
+            app.test_request_context(
+                f'{self.BASE_URL}?resource=people&id=1&search=something',
+                method='GET',
+            ),
+            pytest.raises(BadRequestError) as exc_info,
         ):
-            is_valid, error = RequestValidator.validate(request)
+            RequestValidator.validate(request)
 
-            assert is_valid is False
-            assert error is not None
-            assert error.to_dict() == BadRequestError().to_dict()
+        assert exc_info.value.status == HTTPStatus.BAD_REQUEST.value
+        assert exc_info.value.to_dict() == BadRequestError().to_dict()
 
     def test_should_error_when_use_id_and_page(self, app: Flask) -> None:
-        with app.test_request_context(
-            f'{self.BASE_URL}?resource=people&id=0&page=2',
-            method='GET',
+        with (
+            app.test_request_context(
+                f'{self.BASE_URL}?resource=people&id=1&page=2',
+                method='GET',
+            ),
+            pytest.raises(BadRequestError) as exc_info,
         ):
-            is_valid, error = RequestValidator.validate(request)
+            RequestValidator.validate(request)
 
-            assert is_valid is False
-            assert error is not None
-            assert error.to_dict() == BadRequestError().to_dict()
+        assert exc_info.value.status == HTTPStatus.BAD_REQUEST.value
+        assert exc_info.value.to_dict() == BadRequestError().to_dict()
 
     def test_validate_successful_resources_request(self, app: Flask) -> None:
         valid_resources = [
@@ -108,7 +128,4 @@ class TestRequestValidator:
             with app.test_request_context(
                 f'{self.BASE_URL}?resource={resource}', method='GET'
             ):
-                is_valid, error = RequestValidator.validate(request)
-
-                assert is_valid is True
-                assert error is None
+                RequestValidator.validate(request)

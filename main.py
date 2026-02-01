@@ -24,9 +24,7 @@ def starwars_func(request: Request) -> tuple[Response, int, dict]:
 
     headers = build_cors_headers()
 
-    is_valid_request, error = RequestValidator.validate(request)
-    if not is_valid_request and error is not None:
-        return (jsonify(error.to_dict()), error.status, headers)
+    RequestValidator.validate(request)
 
     swapi_data, status = _get_swapi_data(request.args)
 
