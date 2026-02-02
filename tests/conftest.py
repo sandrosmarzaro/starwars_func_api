@@ -97,7 +97,12 @@ def mock_people_list(respx_mock: MockRouter) -> MockRouter:
 @pytest.fixture
 def mock_all_resources(respx_mock: MockRouter) -> MockRouter:
     resources = [
-        'films', 'people', 'planets', 'species', 'starships', 'vehicles'
+        'films',
+        'people',
+        'planets',
+        'species',
+        'starships',
+        'vehicles',
     ]
     for resource in resources:
         url = urljoin(BASE_URL, f'{resource}/')

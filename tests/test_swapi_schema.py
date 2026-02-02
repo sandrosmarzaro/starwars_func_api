@@ -45,9 +45,7 @@ class TestSwapiSchema:
             for error in errors
         )
 
-    def test_should_error_when_id_is_not_int(
-        self, client: TestClient
-    ) -> None:
+    def test_should_error_when_id_is_not_int(self, client: TestClient) -> None:
         response = client.get(f'{API_URL}?resource=people&id=a')
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_CONTENT.value
