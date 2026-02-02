@@ -1,5 +1,5 @@
-from flask import Request
 from loguru import logger
+from starlette.requests import Request
 
 from exceptions.errors import MethodNotAllowedError
 from schemas.query_params_schema import SwapiQueryParams
@@ -14,6 +14,6 @@ class RequestValidator:
         if request.method != 'GET':
             raise MethodNotAllowedError
 
-        SwapiQueryParams.model_validate(request.args)
+        SwapiQueryParams.model_validate(dict(request.query_params))
 
         logger.debug('request validation ok')

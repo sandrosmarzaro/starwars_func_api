@@ -1,32 +1,44 @@
 from urllib.parse import urljoin
 
-import functions_framework
+import functions_framework.aio
 import httpx
-from flask import Request
+from httpx import HTTPError
 from loguru import logger
+from pydantic import ValidationError
+from starlette.requests import Request
+from starlette.responses import Response
 
-from exceptions import error_handler
+from exceptions.error_handler import (
+    handle_api_error,
+    handle_httpx_error,
+    handle_validation_error,
+)
+from exceptions.errors import BaseError
 from infra.settings import settings
-from models.api_response import ApiResponse
 from utils.response import api_response, cors_preflight_response
 from validators.request_validator import RequestValidator
 
-error_handler.setup()
 
-
-@functions_framework.http
-def starwars_func(request: Request) -> ApiResponse:
-    logger.debug(f'{request.path}, {request.args}')
+@functions_framework.aio.http
+async def starwars_func(request: Request) -> Response:
+    params = dict(request.query_params)
+    logger.debug(f'{request.url.path}, {params}')
 
     if request.method == 'OPTIONS':
         return cors_preflight_response()
 
-    RequestValidator.validate(request)
+    try:
+        RequestValidator.validate(request)
+        return await _get_swapi_data(params)
+    except BaseError as exc:
+        return handle_api_error(exc)
+    except ValidationError as exc:
+        return handle_validation_error(exc)
+    except HTTPError as exc:
+        return handle_httpx_error(exc)
 
-    return _get_swapi_data(request.args)
 
-
-def _get_swapi_data(params: dict) -> ApiResponse:
+async def _get_swapi_data(params: dict) -> Response:
     resource = params.get('resource')
     resource_id = params.get('id')
     base_url = urljoin(settings.SWAPI_BASE_URL, f'{resource}/')
@@ -39,8 +51,8 @@ def _get_swapi_data(params: dict) -> ApiResponse:
     }
 
     logger.debug(base_url)
-    with httpx.Client() as client:
-        response = client.get(base_url, params=query_params)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(base_url, params=query_params)
         response.raise_for_status()
 
     logger.debug(f'{response}, {response.json()}')
