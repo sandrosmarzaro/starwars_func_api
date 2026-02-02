@@ -1,59 +1,49 @@
-from urllib.parse import urljoin
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-import functions_framework.aio
-import httpx
-from httpx import HTTPError
-from loguru import logger
-from pydantic import ValidationError
-from starlette.requests import Request
-from starlette.responses import Response
+from api.v1.routers.swapi_data_router import router as swapi_router
+from exceptions.error_handler import add_exceptions_handler
 
-from exceptions.error_handler import (
-    handle_api_error,
-    handle_httpx_error,
-    handle_validation_error,
+openapi_tags = [
+    {
+        'name': 'swapi',
+        'description': 'Operations to query Star Wars API (SWAPI) resources',
+        'externalDocs': {
+            'description': 'SWAPI Documentation',
+            'url': 'https://swapi.dev/documentation',
+        },
+    },
+]
+
+app = FastAPI(
+    title='Star Wars Wrap API',
+    summary='A wrapper API for SWAPI (Star Wars API)',
+    description='This API proxies requests to SWAPI with validation '
+    'and provides access to Star Wars universe data including '
+    'people, planets, starships, films, species, and vehicles.',
+    version='1.0.0',
+    contact={
+        'name': 'Sandro Smarzaro',
+        'email': 'sansmarzaro@gmail.com',
+        'url': 'https://www.linkedin.com/in/sandrosmarzaro/',
+    },
+    license_info={
+        'name': 'The MIT License',
+        'identifier': 'MIT',
+        'url': 'https://opensource.org/license/mit',
+    },
+    openapi_tags=openapi_tags,
 )
-from exceptions.errors import BaseError
-from infra.settings import settings
-from utils.response import api_response, cors_preflight_response
-from validators.request_validator import RequestValidator
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['GET'],
+    allow_headers=['Content-Type', 'X-API-Key'],
+    max_age=3600,
+)
 
-@functions_framework.aio.http
-async def starwars_func(request: Request) -> Response:
-    params = dict(request.query_params)
-    logger.debug(f'{request.url.path}, {params}')
+add_exceptions_handler(app)
 
-    if request.method == 'OPTIONS':
-        return cors_preflight_response()
-
-    try:
-        RequestValidator.validate(request)
-        return await _get_swapi_data(params)
-    except BaseError as exc:
-        return handle_api_error(exc)
-    except ValidationError as exc:
-        return handle_validation_error(exc)
-    except HTTPError as exc:
-        return handle_httpx_error(exc)
-
-
-async def _get_swapi_data(params: dict) -> Response:
-    resource = params.get('resource')
-    resource_id = params.get('id')
-    base_url = urljoin(settings.SWAPI_BASE_URL, f'{resource}/')
-
-    if resource_id:
-        base_url = urljoin(base_url, resource_id)
-
-    query_params = {
-        key: params[key] for key in ('search', 'page') if params.get(key)
-    }
-
-    logger.debug(base_url)
-    async with httpx.AsyncClient() as client:
-        response = await client.get(base_url, params=query_params)
-        response.raise_for_status()
-
-    logger.debug(f'{response}, {response.json()}')
-    return api_response(response.json())
+app.include_router(swapi_router, prefix='/api/v1')

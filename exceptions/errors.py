@@ -1,59 +1,72 @@
+from functools import lru_cache
 from http import HTTPStatus
+from typing import Any, Literal
+
+from pydantic import BaseModel, create_model
 
 
 class BaseError(Exception):
-    def __init__(self, name: str, message: str, status: int) -> None:
-        super().__init__()
-        self.name = name
+    def __init__(
+        self,
+        message: str | dict[str, Any],
+        status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR,
+        headers: dict[str, str] | None = None,
+    ) -> None:
+        super().__init__(message)
         self.message = message
-        self.status = status
+        self.status_code = status_code
+        self.headers = headers
 
-    def to_dict(self) -> dict[str, str | int]:
-        return {
-            'error': self.name,
-            'message': self.message,
-            'status': self.status,
-        }
-
-    def __str__(self) -> str:
-        return f'{self.name}(status={self.status},message={self.message})'
+    @classmethod
+    @lru_cache
+    def schema(cls) -> type[BaseModel]:
+        return create_model(
+            cls.__name__,
+            error=(Literal[cls.__name__], ...),  # pyright: ignore[reportArgumentType]
+            detail=(str | list[dict[str, Any]], ...),
+        )
 
 
 class MethodNotAllowedError(BaseError):
     def __init__(
         self,
-        name: str = HTTPStatus.METHOD_NOT_ALLOWED.name,
         message: str = HTTPStatus.METHOD_NOT_ALLOWED.description,
-        status: int = HTTPStatus.METHOD_NOT_ALLOWED.value,
+        status_code: int = HTTPStatus.METHOD_NOT_ALLOWED,
     ) -> None:
-        super().__init__(name, message, status)
+        super().__init__(message, status_code)
 
 
 class NotFoundError(BaseError):
     def __init__(
         self,
-        name: str = HTTPStatus.NOT_FOUND.name,
         message: str = HTTPStatus.NOT_FOUND.description,
-        status: int = HTTPStatus.NOT_FOUND.value,
+        status_code: int = HTTPStatus.NOT_FOUND,
     ) -> None:
-        super().__init__(name, message, status)
+        super().__init__(message, status_code)
 
 
 class BadRequestError(BaseError):
     def __init__(
         self,
-        name: str = HTTPStatus.BAD_REQUEST.name,
         message: str = HTTPStatus.BAD_REQUEST.description,
-        status: int = HTTPStatus.BAD_REQUEST.value,
+        status_code: int = HTTPStatus.BAD_REQUEST,
     ) -> None:
-        super().__init__(name, message, status)
+        super().__init__(message, status_code)
 
 
 class InternalServerError(BaseError):
     def __init__(
         self,
-        name: str = HTTPStatus.INTERNAL_SERVER_ERROR.name,
         message: str = HTTPStatus.INTERNAL_SERVER_ERROR.description,
-        status: int = HTTPStatus.INTERNAL_SERVER_ERROR.value,
+        status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR,
     ) -> None:
-        super().__init__(name, message, status)
+        super().__init__(message, status_code)
+
+
+class UnauthorizedError(BaseError):
+    def __init__(
+        self,
+        message: str = HTTPStatus.UNAUTHORIZED.description,
+        status_code: int = HTTPStatus.UNAUTHORIZED,
+    ) -> None:
+        super().__init__(message, status_code)

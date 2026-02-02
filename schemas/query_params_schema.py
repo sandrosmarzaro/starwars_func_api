@@ -1,20 +1,19 @@
 from typing import Literal
 
-from pydantic import BaseModel, PositiveInt, model_validator
-
-from exceptions.errors import BadRequestError
+from pydantic import BaseModel, Field, PositiveInt, model_validator
 
 
 class SwapiQueryParams(BaseModel):
     resource: Literal[
         'films', 'people', 'planets', 'species', 'starships', 'vehicles'
-    ]
-    id: PositiveInt | None = None
-    page: PositiveInt | None = None
-    search: str | None = None
+    ] = Field(examples=['people', 'planets', 'films'])
+    id: PositiveInt | None = Field(default=None, examples=[1, 2, 3])
+    page: PositiveInt | None = Field(default=None, examples=[1, 2, 3])
+    search: str | None = Field(default=None, examples=['skywalker', 'jedi'])
 
     @model_validator(mode='after')
     def validate_query_combations(self) -> 'SwapiQueryParams':
         if self.id and (self.page or self.search):
-            raise BadRequestError
+            msg = 'Cannot use id with page or search'
+            raise ValueError(msg)
         return self

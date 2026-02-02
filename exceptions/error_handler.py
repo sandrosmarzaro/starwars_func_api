@@ -1,9 +1,12 @@
 from http import HTTPStatus
 
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from httpx import HTTPError, HTTPStatusError
 from loguru import logger
 from pydantic import ValidationError
-from starlette.responses import Response
 
 from exceptions.errors import (
     BadRequestError,
@@ -12,7 +15,6 @@ from exceptions.errors import (
     MethodNotAllowedError,
     NotFoundError,
 )
-from utils.response import error_response
 
 _HTTP_EXCEPTION_MAPPING = {
     HTTPStatus.BAD_REQUEST.value: BadRequestError,
@@ -33,17 +35,89 @@ def _create_error_from_httpx(exc: HTTPError) -> BaseError:
     return InternalServerError()
 
 
-def handle_httpx_error(exc: HTTPError) -> Response:
+async def __handle_base_error(
+    request: Request,  # noqa: ARG001
+    exc: BaseError,
+) -> JSONResponse:
+    logger.warning(exc)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={'error': type(exc).__name__, 'detail': exc.message},
+    )
+
+
+async def __handle_httpx_error(
+    request: Request,  # noqa: ARG001
+    exc: HTTPError,
+) -> JSONResponse:
     logger.error(exc)
     error = _create_error_from_httpx(exc)
-    return error_response(error)
+    return JSONResponse(
+        status_code=error.status_code,
+        content={'error': type(error).__name__, 'detail': error.message},
+    )
 
 
-def handle_api_error(exc: BaseError) -> Response:
+async def __global_internal_handle_error(
+    request: Request,  # noqa: ARG001
+    exc: Exception,
+) -> JSONResponse:
+    logger.error(exc)
+    return JSONResponse(
+        status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        content={
+            'error': type(exc).__name__,
+            'detail': HTTPStatus.INTERNAL_SERVER_ERROR.description,
+        },
+    )
+
+
+async def __global_validation_handle_error(
+    request: Request,  # noqa: ARG001
+    exc: RequestValidationError,
+) -> JSONResponse:
     logger.warning(exc)
-    return error_response(exc)
+    return JSONResponse(
+        status_code=HTTPStatus.UNPROCESSABLE_CONTENT,
+        content={
+            'error': type(exc).__name__,
+            'detail': jsonable_encoder(exc.errors()),
+        },
+    )
 
 
-def handle_validation_error(exc: ValidationError) -> Response:
+async def __pydantic_validation_handle_error(
+    request: Request,  # noqa: ARG001
+    exc: ValidationError,
+) -> JSONResponse:
     logger.warning(exc)
-    return error_response(BadRequestError())
+    return JSONResponse(
+        status_code=HTTPStatus.UNPROCESSABLE_CONTENT,
+        content={
+            'error': 'RequestValidationError',
+            'detail': jsonable_encoder(exc.errors()),
+        },
+    )
+
+
+def add_exceptions_handler(app: FastAPI) -> None:
+    app.add_exception_handler(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        __global_internal_handle_error,
+    )
+    app.add_exception_handler(
+        RequestValidationError,
+        __global_validation_handle_error,  # pyright: ignore[reportArgumentType]
+    )
+    app.add_exception_handler(
+        ValidationError,
+        __pydantic_validation_handle_error,  # pyright: ignore[reportArgumentType]
+    )
+    app.add_exception_handler(
+        BaseError,
+        __handle_base_error,  # pyright: ignore[reportArgumentType]
+    )
+    app.add_exception_handler(
+        HTTPError,
+        __handle_httpx_error,  # pyright: ignore[reportArgumentType]
+    )
