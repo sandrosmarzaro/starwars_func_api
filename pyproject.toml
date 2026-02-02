@@ -1,14 +1,14 @@
 [project]
 name = "starwars-func-api"
 version = "0.1.0"
-description = "Add your description here"
+description = "Function API that wrap SWAPI "
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "functions-framework>=3.10.0",
-    "httpx>=0.28.1",
-    "loguru>=0.7.3",
-    "pydantic-settings>=2.12.0",
+  "functions-framework>=3.10.0",
+  "httpx>=0.28.1",
+  "loguru>=0.7.3",
+  "pydantic-settings>=2.12.0",
 ]
 
 [dependency-groups]
@@ -16,6 +16,7 @@ dev = [
   "pre-commit>=4.5.1",
   "pyright>=1.1.408",
   "pytest>=9.0.2",
+  "pytest-asyncio>=0.25.0",
   "pytest-cov>=7.0.0",
   "respx>=0.22.0",
   "ruff>=0.14.14",
@@ -34,6 +35,6 @@ commit = { cmd = "pre-commit run --all-files", help = "runs pre commit" }
 
 type = { cmd = "pyright", help = "runs pyright to check types" }
 
-test = { cmd="pytest", help="run all tests"}
+test = { cmd = "pytest", help = "run all tests" }
 
-cover = { cmd="coverage report", help="show code coverage"}
+cover = { cmd = "coverage report", help = "show code coverage" }
