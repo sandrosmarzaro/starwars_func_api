@@ -1,21 +1,17 @@
 from http import HTTPStatus
 
 import pytest
-from httpx import AsyncClient
+from fastapi.testclient import TestClient
 
-from exceptions.errors import (
-    BadRequestError,
-    InternalServerError,
-    MethodNotAllowedError,
-    NotFoundError,
-)
 from tests.conftest import ANAKIN_SKYWALKER, LUKE_SKYWALKER
 
+API_URL = '/api/v1/swapi/'
 
-class TestGetSwapiData:
+
+class TestSwapiDataService:
     @pytest.mark.usefixtures('mock_people_list')
-    async def test_should_return_data_for_valid_resource(
-        self, client: AsyncClient
+    def test_should_return_data_for_valid_resource(
+        self, client: TestClient
     ) -> None:
         expected_data = {
             'count': 82,
@@ -24,23 +20,23 @@ class TestGetSwapiData:
             'results': [LUKE_SKYWALKER, ANAKIN_SKYWALKER],
         }
 
-        response = await client.get('/?resource=people')
+        response = client.get(f'{API_URL}?resource=people')
 
         assert response.status_code == HTTPStatus.OK.value
         assert response.json() == expected_data
 
     @pytest.mark.usefixtures('mock_person_by_id')
-    async def test_should_return_data_for_resource_with_id(
-        self, client: AsyncClient
+    def test_should_return_data_for_resource_with_id(
+        self, client: TestClient
     ) -> None:
-        response = await client.get('/?resource=people&id=1')
+        response = client.get(f'{API_URL}?resource=people&id=1')
 
         assert response.status_code == HTTPStatus.OK.value
         assert response.json() == LUKE_SKYWALKER
 
     @pytest.mark.usefixtures('mock_people_search')
-    async def test_should_return_data_with_search_param(
-        self, client: AsyncClient
+    def test_should_return_data_with_search_param(
+        self, client: TestClient
     ) -> None:
         expected_data = {
             'count': 1,
@@ -49,14 +45,14 @@ class TestGetSwapiData:
             'results': [LUKE_SKYWALKER],
         }
 
-        response = await client.get('/?resource=people&search=luke')
+        response = client.get(f'{API_URL}?resource=people&search=luke')
 
         assert response.status_code == HTTPStatus.OK.value
         assert response.json() == expected_data
 
     @pytest.mark.usefixtures('mock_people_page')
-    async def test_should_return_data_with_page_param(
-        self, client: AsyncClient
+    def test_should_return_data_with_page_param(
+        self, client: TestClient
     ) -> None:
         expected_data = {
             'count': 82,
@@ -65,43 +61,55 @@ class TestGetSwapiData:
             'results': [ANAKIN_SKYWALKER],
         }
 
-        response = await client.get('/?resource=people&page=2')
+        response = client.get(f'{API_URL}?resource=people&page=2')
 
         assert response.status_code == HTTPStatus.OK.value
         assert response.json() == expected_data
 
     @pytest.mark.usefixtures('mock_not_found')
-    async def test_should_return_not_found_error_on_404(
-        self, client: AsyncClient
+    def test_should_return_not_found_error_on_404(
+        self, client: TestClient
     ) -> None:
-        response = await client.get('/?resource=people&id=999')
+        response = client.get(f'{API_URL}?resource=people&id=999')
 
         assert response.status_code == HTTPStatus.NOT_FOUND.value
-        assert response.json() == NotFoundError().to_dict()
+        assert response.json() == {
+            'error': 'NotFoundError',
+            'detail': HTTPStatus.NOT_FOUND.description,
+        }
 
     @pytest.mark.usefixtures('mock_bad_request')
-    async def test_should_return_bad_request_error_on_400(
-        self, client: AsyncClient
+    def test_should_return_bad_request_error_on_400(
+        self, client: TestClient
     ) -> None:
-        response = await client.get('/?resource=people')
+        response = client.get(f'{API_URL}?resource=people')
 
         assert response.status_code == HTTPStatus.BAD_REQUEST.value
-        assert response.json() == BadRequestError().to_dict()
+        assert response.json() == {
+            'error': 'BadRequestError',
+            'detail': HTTPStatus.BAD_REQUEST.description,
+        }
 
     @pytest.mark.usefixtures('mock_method_not_allowed')
-    async def test_should_return_method_not_allowed_error_on_405(
-        self, client: AsyncClient
+    def test_should_return_method_not_allowed_error_on_405(
+        self, client: TestClient
     ) -> None:
-        response = await client.get('/?resource=people')
+        response = client.get(f'{API_URL}?resource=people')
 
         assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED.value
-        assert response.json() == MethodNotAllowedError().to_dict()
+        assert response.json() == {
+            'error': 'MethodNotAllowedError',
+            'detail': HTTPStatus.METHOD_NOT_ALLOWED.description,
+        }
 
     @pytest.mark.usefixtures('mock_service_unavailable')
-    async def test_should_return_internal_server_error_on_unknown_status(
-        self, client: AsyncClient
+    def test_should_return_internal_server_error_on_unknown_status(
+        self, client: TestClient
     ) -> None:
-        response = await client.get('/?resource=people')
+        response = client.get(f'{API_URL}?resource=people')
 
         assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR.value
-        assert response.json() == InternalServerError().to_dict()
+        assert response.json() == {
+            'error': 'InternalServerError',
+            'detail': HTTPStatus.INTERNAL_SERVER_ERROR.description,
+        }

@@ -1,16 +1,14 @@
-from collections.abc import AsyncIterator
+from collections.abc import Iterator
 from http import HTTPStatus
-from typing import cast
 from urllib.parse import urljoin
 
-import functions_framework.aio
 import httpx
 import pytest
-from httpx import ASGITransport, AsyncClient
+from fastapi.testclient import TestClient
 from respx import MockRouter
-from starlette.applications import Starlette
 
 from infra.settings import settings
+from main import app
 
 BASE_URL = settings.SWAPI_BASE_URL
 
@@ -76,19 +74,8 @@ ANAKIN_SKYWALKER = {
 
 
 @pytest.fixture
-def app() -> Starlette:
-    return cast(
-        'Starlette',
-        functions_framework.aio.create_asgi_app('starwars_func', 'main.py'),
-    )
-
-
-@pytest.fixture
-async def client(app: Starlette) -> AsyncIterator[AsyncClient]:
-    transport = ASGITransport(app=app)
-    async with AsyncClient(
-        transport=transport, base_url='http://test'
-    ) as client:
+def client() -> Iterator[TestClient]:
+    with TestClient(app, headers={'X-API-Key': settings.API_KEY}) as client:
         yield client
 
 
@@ -104,6 +91,20 @@ def mock_people_list(respx_mock: MockRouter) -> MockRouter:
     respx_mock.get(url).mock(
         return_value=httpx.Response(HTTPStatus.OK, json=data)
     )
+    return respx_mock
+
+
+@pytest.fixture
+def mock_all_resources(respx_mock: MockRouter) -> MockRouter:
+    resources = [
+        'films', 'people', 'planets', 'species', 'starships', 'vehicles'
+    ]
+    for resource in resources:
+        url = urljoin(BASE_URL, f'{resource}/')
+        data = {'count': 1, 'results': []}
+        respx_mock.get(url).mock(
+            return_value=httpx.Response(HTTPStatus.OK, json=data)
+        )
     return respx_mock
 
 
