@@ -10,12 +10,12 @@ class _Settings(BaseSettings):
         extra='ignore',
     )
     SWAPI_BASE_URL: str = 'https://swapi.dev/api/'
-    API_KEY: str
+    API_KEY: str = 'x-api-key'
 
 
 @lru_cache
 def _get_settings() -> _Settings:
-    return _Settings()  # pyright: ignore[reportCallIssue]
+    return _Settings()
 
 
 settings = _get_settings()
