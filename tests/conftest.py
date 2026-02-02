@@ -1,15 +1,15 @@
+from collections.abc import AsyncIterator
 from http import HTTPStatus
 from typing import cast
 from urllib.parse import urljoin
 
-import functions_framework
+import functions_framework.aio
 import httpx
 import pytest
-from flask import Flask
-from flask.testing import FlaskClient
+from httpx import ASGITransport, AsyncClient
 from respx import MockRouter
+from starlette.applications import Starlette
 
-from exceptions.error_handler import register_error_handlers
 from infra.settings import settings
 
 BASE_URL = settings.SWAPI_BASE_URL
@@ -76,18 +76,20 @@ ANAKIN_SKYWALKER = {
 
 
 @pytest.fixture
-def app() -> Flask:
-    app = cast(
-        'Flask', functions_framework.create_app('starwars_func', 'main.py')
+def app() -> Starlette:
+    return cast(
+        'Starlette',
+        functions_framework.aio.create_asgi_app('starwars_func', 'main.py'),
     )
-    app.testing = True
-    register_error_handlers(app)
-    return app
 
 
 @pytest.fixture
-def client(app: Flask) -> FlaskClient:
-    return app.test_client()
+async def client(app: Starlette) -> AsyncIterator[AsyncClient]:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(
+        transport=transport, base_url='http://test'
+    ) as client:
+        yield client
 
 
 @pytest.fixture
