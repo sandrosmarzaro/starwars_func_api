@@ -7,12 +7,14 @@ from loguru import logger
 from infra.settings import settings
 from schemas.swapi_query_params_schema import SwapiQueryParams
 from services.expand_swapi_data_service import ExpandSwapiDataService
+from services.sort_swapi_data_service import SortSwapiDataService
 
 
 class SwapiDataService:
     def __init__(self) -> None:
         self.base_url = settings.SWAPI_BASE_URL
         self.expand_service = ExpandSwapiDataService()
+        self.sort_service = SortSwapiDataService()
 
     async def get_swapi_data(self, params: SwapiQueryParams) -> dict[str, Any]:
         resource_url = urljoin(self.base_url, f'{params.resource}/')
@@ -34,6 +36,11 @@ class SwapiDataService:
 
             if params.expand:
                 data = await self.expand_service.expand(client, data)
+
+        if params.sort_by:
+            data = self.sort_service.sort(
+                data, params.sort_by, params.sort_order
+            )
 
         logger.debug(f'{response}, {data}')
         return data
