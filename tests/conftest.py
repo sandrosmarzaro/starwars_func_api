@@ -9,88 +9,19 @@ from respx import MockRouter
 
 from infra.settings import settings
 from main import app
+from tests.mock_data import (
+    ANAKIN_SKYWALKER,
+    ARVEL_CRYNYD,
+    FILM_1,
+    FILM_2,
+    LUKE_SKYWALKER,
+    STARSHIP_12,
+    TATOOINE,
+    VEHICLE_14,
+    YODA,
+)
 
 BASE_URL = settings.SWAPI_BASE_URL
-
-LUKE_SKYWALKER = {
-    'name': 'Luke Skywalker',
-    'height': '172',
-    'mass': '77',
-    'hair_color': 'blond',
-    'skin_color': 'fair',
-    'eye_color': 'blue',
-    'birth_year': '19BBY',
-    'gender': 'male',
-    'homeworld': 'https://swapi.dev/api/planets/1/',
-    'films': [
-        'https://swapi.dev/api/films/1/',
-        'https://swapi.dev/api/films/2/',
-        'https://swapi.dev/api/films/3/',
-        'https://swapi.dev/api/films/6/',
-    ],
-    'species': [],
-    'vehicles': [
-        'https://swapi.dev/api/vehicles/14/',
-        'https://swapi.dev/api/vehicles/30/',
-    ],
-    'starships': [
-        'https://swapi.dev/api/starships/12/',
-        'https://swapi.dev/api/starships/22/',
-    ],
-    'created': '2014-12-09T13:50:51.644000Z',
-    'edited': '2014-12-20T21:17:56.891000Z',
-    'url': 'https://swapi.dev/api/people/1/',
-}
-
-ANAKIN_SKYWALKER = {
-    'name': 'Anakin Skywalker',
-    'height': '188',
-    'mass': '84',
-    'hair_color': 'blond',
-    'skin_color': 'fair',
-    'eye_color': 'blue',
-    'birth_year': '41.9BBY',
-    'gender': 'male',
-    'homeworld': 'https://swapi.dev/api/planets/1/',
-    'films': [
-        'https://swapi.dev/api/films/4/',
-        'https://swapi.dev/api/films/5/',
-        'https://swapi.dev/api/films/6/',
-    ],
-    'species': [],
-    'vehicles': [
-        'https://swapi.dev/api/vehicles/44/',
-        'https://swapi.dev/api/vehicles/46/',
-    ],
-    'starships': [
-        'https://swapi.dev/api/starships/39/',
-        'https://swapi.dev/api/starships/59/',
-        'https://swapi.dev/api/starships/65/',
-    ],
-    'created': '2014-12-10T16:20:44.310000Z',
-    'edited': '2014-12-20T21:17:50.327000Z',
-    'url': 'https://swapi.dev/api/people/11/',
-}
-
-TATOOINE = {
-    'name': 'Tatooine',
-    'climate': 'arid',
-    'terrain': 'desert',
-    'url': 'https://swapi.dev/api/planets/1/',
-}
-
-FILM_1 = {'title': 'A New Hope', 'url': 'https://swapi.dev/api/films/1/'}
-FILM_2 = {
-    'title': 'The Empire Strikes Back',
-    'url': 'https://swapi.dev/api/films/2/',
-}
-
-VEHICLE_14 = {
-    'name': 'Snowspeeder',
-    'url': 'https://swapi.dev/api/vehicles/14/',
-}
-
-STARSHIP_12 = {'name': 'X-wing', 'url': 'https://swapi.dev/api/starships/12/'}
 
 
 @pytest.fixture
@@ -273,5 +204,20 @@ def mock_person_expand_with_error(respx_mock: MockRouter) -> MockRouter:
     )
     respx_mock.get('https://swapi.dev/api/planets/1/').mock(
         return_value=httpx.Response(HTTPStatus.NOT_FOUND)
+    )
+    return respx_mock
+
+
+@pytest.fixture
+def mock_people_for_sort(respx_mock: MockRouter) -> MockRouter:
+    url = urljoin(BASE_URL, 'people/')
+    data = {
+        'count': 4,
+        'next': None,
+        'previous': None,
+        'results': [LUKE_SKYWALKER, ANAKIN_SKYWALKER, YODA, ARVEL_CRYNYD],
+    }
+    respx_mock.get(url).mock(
+        return_value=httpx.Response(HTTPStatus.OK, json=data)
     )
     return respx_mock

@@ -3,7 +3,7 @@ from http import HTTPStatus
 import pytest
 from fastapi.testclient import TestClient
 
-from tests.conftest import (
+from tests.mock_data import (
     ANAKIN_SKYWALKER,
     FILM_1,
     FILM_2,
