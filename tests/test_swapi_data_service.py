@@ -3,7 +3,15 @@ from http import HTTPStatus
 import pytest
 from fastapi.testclient import TestClient
 
-from tests.conftest import ANAKIN_SKYWALKER, LUKE_SKYWALKER
+from tests.conftest import (
+    ANAKIN_SKYWALKER,
+    FILM_1,
+    FILM_2,
+    LUKE_SKYWALKER,
+    STARSHIP_12,
+    TATOOINE,
+    VEHICLE_14,
+)
 
 API_URL = '/api/v1/swapi/'
 
@@ -113,3 +121,36 @@ class TestSwapiDataService:
             'error': 'InternalServerError',
             'detail': HTTPStatus.INTERNAL_SERVER_ERROR.description,
         }
+
+    @pytest.mark.usefixtures('mock_person_with_expand')
+    def test_should_expand_hateoas_links(self, client: TestClient) -> None:
+        response = client.get(f'{API_URL}?resource=people&id=1&expand=true')
+
+        assert response.status_code == HTTPStatus.OK.value
+        data = response.json()
+        assert data['name'] == 'Luke Skywalker'
+        assert data['homeworld'] == TATOOINE
+        assert data['films'] == [FILM_1, FILM_2]
+        assert data['vehicles'] == [VEHICLE_14]
+        assert data['starships'] == [STARSHIP_12]
+        assert data['url'] == 'https://swapi.dev/api/people/1/'
+
+    @pytest.mark.usefixtures('mock_person_by_id')
+    def test_should_not_expand_when_expand_is_false(
+        self, client: TestClient
+    ) -> None:
+        response = client.get(f'{API_URL}?resource=people&id=1&expand=false')
+
+        assert response.status_code == HTTPStatus.OK.value
+        data = response.json()
+        assert data['homeworld'] == 'https://swapi.dev/api/planets/1/'
+
+    @pytest.mark.usefixtures('mock_person_expand_with_error')
+    def test_should_handle_expand_fetch_error_gracefully(
+        self, client: TestClient
+    ) -> None:
+        response = client.get(f'{API_URL}?resource=people&id=1&expand=true')
+
+        assert response.status_code == HTTPStatus.OK.value
+        data = response.json()
+        assert data['homeworld']['error'] == 'Failed to fetch resource'

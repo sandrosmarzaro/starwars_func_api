@@ -72,6 +72,26 @@ ANAKIN_SKYWALKER = {
     'url': 'https://swapi.dev/api/people/11/',
 }
 
+TATOOINE = {
+    'name': 'Tatooine',
+    'climate': 'arid',
+    'terrain': 'desert',
+    'url': 'https://swapi.dev/api/planets/1/',
+}
+
+FILM_1 = {'title': 'A New Hope', 'url': 'https://swapi.dev/api/films/1/'}
+FILM_2 = {
+    'title': 'The Empire Strikes Back',
+    'url': 'https://swapi.dev/api/films/2/',
+}
+
+VEHICLE_14 = {
+    'name': 'Snowspeeder',
+    'url': 'https://swapi.dev/api/vehicles/14/',
+}
+
+STARSHIP_12 = {'name': 'X-wing', 'url': 'https://swapi.dev/api/starships/12/'}
+
 
 @pytest.fixture
 def client() -> Iterator[TestClient]:
@@ -194,5 +214,64 @@ def mock_service_unavailable(respx_mock: MockRouter) -> MockRouter:
     url = urljoin(BASE_URL, 'people/')
     respx_mock.get(url).mock(
         return_value=httpx.Response(HTTPStatus.SERVICE_UNAVAILABLE)
+    )
+    return respx_mock
+
+
+@pytest.fixture
+def mock_person_with_expand(respx_mock: MockRouter) -> MockRouter:
+    luke_simple = {
+        'name': 'Luke Skywalker',
+        'homeworld': 'https://swapi.dev/api/planets/1/',
+        'films': [
+            'https://swapi.dev/api/films/1/',
+            'https://swapi.dev/api/films/2/',
+        ],
+        'species': [],
+        'vehicles': ['https://swapi.dev/api/vehicles/14/'],
+        'starships': ['https://swapi.dev/api/starships/12/'],
+        'created': '2014-12-09T13:50:51.644000Z',
+        'edited': '2014-12-20T21:17:56.891000Z',
+        'url': 'https://swapi.dev/api/people/1/',
+    }
+    url = urljoin(urljoin(BASE_URL, 'people/'), '1')
+    respx_mock.get(url).mock(
+        return_value=httpx.Response(HTTPStatus.OK, json=luke_simple)
+    )
+    respx_mock.get('https://swapi.dev/api/planets/1/').mock(
+        return_value=httpx.Response(HTTPStatus.OK, json=TATOOINE)
+    )
+    respx_mock.get('https://swapi.dev/api/films/1/').mock(
+        return_value=httpx.Response(HTTPStatus.OK, json=FILM_1)
+    )
+    respx_mock.get('https://swapi.dev/api/films/2/').mock(
+        return_value=httpx.Response(HTTPStatus.OK, json=FILM_2)
+    )
+    respx_mock.get('https://swapi.dev/api/vehicles/14/').mock(
+        return_value=httpx.Response(HTTPStatus.OK, json=VEHICLE_14)
+    )
+    respx_mock.get('https://swapi.dev/api/starships/12/').mock(
+        return_value=httpx.Response(HTTPStatus.OK, json=STARSHIP_12)
+    )
+    return respx_mock
+
+
+@pytest.fixture
+def mock_person_expand_with_error(respx_mock: MockRouter) -> MockRouter:
+    luke_simple = {
+        'name': 'Luke Skywalker',
+        'homeworld': 'https://swapi.dev/api/planets/1/',
+        'films': [],
+        'species': [],
+        'vehicles': [],
+        'starships': [],
+        'url': 'https://swapi.dev/api/people/1/',
+    }
+    url = urljoin(urljoin(BASE_URL, 'people/'), '1')
+    respx_mock.get(url).mock(
+        return_value=httpx.Response(HTTPStatus.OK, json=luke_simple)
+    )
+    respx_mock.get('https://swapi.dev/api/planets/1/').mock(
+        return_value=httpx.Response(HTTPStatus.NOT_FOUND)
     )
     return respx_mock
