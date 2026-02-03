@@ -80,6 +80,18 @@ def client() -> Iterator[TestClient]:
 
 
 @pytest.fixture
+def client_without_api_key() -> Iterator[TestClient]:
+    with TestClient(app) as client:
+        yield client
+
+
+@pytest.fixture
+def client_with_invalid_api_key() -> Iterator[TestClient]:
+    with TestClient(app, headers={'X-API-Key': 'invalid-key'}) as client:
+        yield client
+
+
+@pytest.fixture
 def mock_people_list(respx_mock: MockRouter) -> MockRouter:
     url = urljoin(BASE_URL, 'people/')
     data = {
