@@ -7,7 +7,11 @@ from loguru import logger
 
 class ExpandSwapiDataService:
     _skip_fields: ClassVar[set[str]] = {
-        'url', 'next', 'previous', 'created', 'edited'
+        'url',
+        'next',
+        'previous',
+        'created',
+        'edited',
     }
 
     async def expand(
@@ -16,9 +20,11 @@ class ExpandSwapiDataService:
         if 'results' not in data:
             return await self._expand_item(client, data)
 
-        data['results'] = list(await asyncio.gather(
-            *[self._expand_item(client, i) for i in data['results']]
-        ))
+        data['results'] = list(
+            await asyncio.gather(
+                *[self._expand_item(client, i) for i in data['results']]
+            )
+        )
         return data
 
     async def _expand_item(
@@ -47,7 +53,8 @@ class ExpandSwapiDataService:
             return None
 
         tasks = {
-            k: task for k, v in item.items()
+            k: task
+            for k, v in item.items()
             if k not in self._skip_fields and (task := make_task(v))
         }
 
