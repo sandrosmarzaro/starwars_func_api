@@ -70,3 +70,12 @@ class UnauthorizedError(BaseError):
         status_code: int = HTTPStatus.UNAUTHORIZED,
     ) -> None:
         super().__init__(message, status_code)
+
+
+class UnprocessableEntityError(BaseError):
+    def __init__(
+        self,
+        message: str = HTTPStatus.UNPROCESSABLE_ENTITY.description,
+        status_code: int = HTTPStatus.UNPROCESSABLE_ENTITY,
+    ) -> None:
+        super().__init__(message, status_code)
