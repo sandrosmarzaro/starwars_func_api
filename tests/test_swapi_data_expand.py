@@ -16,10 +16,10 @@ class TestSwapiDataExpand:
     API_URL = '/api/v1/swapi/'
 
     @pytest.mark.usefixtures('mock_person_with_expand')
-    def test_should_expand_hateoas_links(self, client: TestClient) -> None:
+    def test_should_expand_all_hateoas_links(self, client: TestClient) -> None:
         response = client.get(
             self.API_URL,
-            params={'resource': 'people', 'id': 1, 'expand': True},
+            params={'resource': 'people', 'id': 1, 'expand': 'all'},
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -32,12 +32,12 @@ class TestSwapiDataExpand:
         assert data['url'] == 'https://swapi.dev/api/people/1/'
 
     @pytest.mark.usefixtures('mock_person_by_id')
-    def test_should_not_expand_when_expand_is_false(
+    def test_should_not_expand_when_expand_is_not_provided(
         self, client: TestClient
     ) -> None:
         response = client.get(
             self.API_URL,
-            params={'resource': 'people', 'id': 1, 'expand': False},
+            params={'resource': 'people', 'id': 1},
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -50,9 +50,46 @@ class TestSwapiDataExpand:
     ) -> None:
         response = client.get(
             self.API_URL,
-            params={'resource': 'people', 'id': 1, 'expand': True},
+            params={'resource': 'people', 'id': 1, 'expand': 'all'},
         )
 
         assert response.status_code == HTTPStatus.OK.value
         data = response.json()
         assert data['homeworld']['error'] == 'Failed to fetch resource'
+
+    @pytest.mark.usefixtures('mock_person_with_expand')
+    def test_should_expand_only_specified_field(
+        self, client: TestClient
+    ) -> None:
+        response = client.get(
+            self.API_URL,
+            params={'resource': 'people', 'id': 1, 'expand': 'homeworld'},
+        )
+
+        assert response.status_code == HTTPStatus.OK.value
+        data = response.json()
+        assert data['homeworld'] == TATOOINE
+        assert data['films'] == [
+            'https://swapi.dev/api/films/1/',
+            'https://swapi.dev/api/films/2/',
+        ]
+
+    @pytest.mark.usefixtures('mock_person_with_expand')
+    def test_should_expand_multiple_specified_fields(
+        self, client: TestClient
+    ) -> None:
+        response = client.get(
+            self.API_URL,
+            params={
+                'resource': 'people',
+                'id': 1,
+                'expand': 'homeworld,films',
+            },
+        )
+
+        assert response.status_code == HTTPStatus.OK.value
+        data = response.json()
+        assert data['homeworld'] == TATOOINE
+        assert data['films'] == [FILM_1, FILM_2]
+        assert data['vehicles'] == ['https://swapi.dev/api/vehicles/14/']
+        assert data['starships'] == ['https://swapi.dev/api/starships/12/']

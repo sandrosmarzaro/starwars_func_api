@@ -14,21 +14,36 @@ class ExpandSwapiDataService:
         'edited',
     }
 
+    def _parse_fields(self, expand: str) -> set[str] | None:
+        if expand.lower() == 'all':
+            return None
+        return {field.strip() for field in expand.split(',')}
+
     async def expand(
-        self, client: httpx.AsyncClient, data: dict[str, Any]
+        self,
+        client: httpx.AsyncClient,
+        data: dict[str, Any],
+        expand: str,
     ) -> dict[str, Any]:
+        fields = self._parse_fields(expand)
         if 'results' not in data:
-            return await self._expand_item(client, data)
+            return await self._expand_item(client, data, fields)
 
         data['results'] = list(
             await asyncio.gather(
-                *[self._expand_item(client, i) for i in data['results']]
+                *[
+                    self._expand_item(client, i, fields)
+                    for i in data['results']
+                ]
             )
         )
         return data
 
     async def _expand_item(
-        self, client: httpx.AsyncClient, item: dict[str, Any]
+        self,
+        client: httpx.AsyncClient,
+        item: dict[str, Any],
+        fields: set[str] | None = None,
     ) -> dict[str, Any]:
         async def fetch(url: str) -> dict[str, Any]:
             try:
@@ -52,10 +67,17 @@ class ExpandSwapiDataService:
                     return asyncio.create_task(fetch_many(val))
             return None
 
+        def should_expand(key: str) -> bool:
+            if key in self._skip_fields:
+                return False
+            if fields is None:
+                return True
+            return key in fields
+
         tasks = {
             k: task
             for k, v in item.items()
-            if k not in self._skip_fields and (task := make_task(v))
+            if should_expand(k) and (task := make_task(v))
         }
 
         results = await asyncio.gather(*tasks.values())

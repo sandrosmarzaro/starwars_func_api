@@ -16,9 +16,11 @@ class SwapiQueryParams(BaseModel):
     id: PositiveInt | None = Field(default=None, examples=[1, 2, 3])
     page: PositiveInt | None = Field(default=None, examples=[1, 2, 3])
     search: str | None = Field(default=None, examples=['skywalker', 'jedi'])
-    expand: bool = Field(
-        default=False,
-        description='Expand first-level HATEOAS links with actual data',
+    expand: str | None = Field(
+        default=None,
+        description='Expand HATEOAS links. Use "all" to expand all fields, '
+        'or specify field names separated by comma (e.g., "homeworld,films")',
+        examples=['all', 'homeworld', 'homeworld,films'],
     )
     sort_by: str | None = Field(
         default=None,

@@ -35,7 +35,9 @@ class SwapiDataService:
             data = response.json()
 
             if params.expand:
-                data = await self.expand_service.expand(client, data)
+                data = await self.expand_service.expand(
+                    client, data, params.expand
+                )
 
         if params.sort_by:
             data = self.sort_service.sort(
