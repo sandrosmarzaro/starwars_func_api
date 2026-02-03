@@ -5,7 +5,7 @@ import httpx
 from loguru import logger
 
 from infra.settings import settings
-from schemas.query_params_schema import SwapiQueryParams
+from schemas.swapi_query_params_schema import SwapiQueryParams
 
 
 class SwapiDataService:

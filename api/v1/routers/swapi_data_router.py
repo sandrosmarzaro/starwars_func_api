@@ -10,7 +10,7 @@ from exceptions.errors import (
     UnauthorizedError,
 )
 from schemas.examples.swapi_router_examples import SWAPI_EXAMPLES
-from schemas.query_params_schema import SwapiQueryParams
+from schemas.swapi_query_params_schema import SwapiQueryParams
 from services.auth_service import verify_api_key
 from services.swapi_data_service import SwapiDataService
 
