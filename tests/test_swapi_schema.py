@@ -6,10 +6,11 @@ from fastapi.testclient import TestClient
 
 class TestSwapiSchema:
     API_URL = '/api/v1/swapi/'
+
     def test_should_error_when_not_exist_resource(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{self.API_URL}?resource=nonexists')
+        response = client.get(self.API_URL, params={'resource': 'nonexists'})
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_CONTENT.value
         assert response.json()['error'] == 'RequestValidationError'
@@ -33,7 +34,10 @@ class TestSwapiSchema:
     def test_should_error_when_page_is_not_int(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{self.API_URL}?resource=people&page=a')
+        response = client.get(
+            self.API_URL,
+            params={'resource': 'people', 'page': 'a'},
+        )
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_CONTENT.value
         assert response.json()['error'] == 'RequestValidationError'
@@ -45,7 +49,10 @@ class TestSwapiSchema:
         )
 
     def test_should_error_when_id_is_not_int(self, client: TestClient) -> None:
-        response = client.get(f'{self.API_URL}?resource=people&id=a')
+        response = client.get(
+            self.API_URL,
+            params={'resource': 'people', 'id': 'a'},
+        )
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_CONTENT.value
         assert response.json()['error'] == 'RequestValidationError'
@@ -59,7 +66,8 @@ class TestSwapiSchema:
         self, client: TestClient
     ) -> None:
         response = client.get(
-            f'{self.API_URL}?resource=people&id=1&search=something'
+            self.API_URL,
+            params={'resource': 'people', 'id': 1, 'search': 'something'},
         )
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_CONTENT.value
@@ -68,7 +76,10 @@ class TestSwapiSchema:
     def test_should_error_when_use_id_and_page(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{self.API_URL}?resource=people&id=1&page=2')
+        response = client.get(
+            self.API_URL,
+            params={'resource': 'people', 'id': 1, 'page': 2},
+        )
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_CONTENT.value
         assert response.json()['error'] == 'RequestValidationError'
@@ -86,5 +97,5 @@ class TestSwapiSchema:
             'vehicles',
         ]
         for resource in valid_resources:
-            response = client.get(f'{self.API_URL}?resource={resource}')
+            response = client.get(self.API_URL, params={'resource': resource})
             assert response.status_code == HTTPStatus.OK.value

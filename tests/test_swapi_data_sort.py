@@ -6,10 +6,16 @@ from fastapi.testclient import TestClient
 
 class TestSwapiDataSort:
     API_URL = '/api/v1/swapi/'
+
     @pytest.mark.usefixtures('mock_people_for_sort')
     def test_should_sort_by_name_ascending(self, client: TestClient) -> None:
         response = client.get(
-            f'{self.API_URL}?resource=people&sort_by=name&sort_order=asc'
+            self.API_URL,
+            params={
+                'resource': 'people',
+                'sort_by': 'name',
+                'sort_order': 'asc',
+            },
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -25,7 +31,12 @@ class TestSwapiDataSort:
     @pytest.mark.usefixtures('mock_people_for_sort')
     def test_should_sort_by_name_descending(self, client: TestClient) -> None:
         response = client.get(
-            f'{self.API_URL}?resource=people&sort_by=name&sort_order=desc'
+            self.API_URL,
+            params={
+                'resource': 'people',
+                'sort_by': 'name',
+                'sort_order': 'desc',
+            },
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -43,7 +54,12 @@ class TestSwapiDataSort:
         self, client: TestClient
     ) -> None:
         response = client.get(
-            f'{self.API_URL}?resource=people&sort_by=height&sort_order=asc'
+            self.API_URL,
+            params={
+                'resource': 'people',
+                'sort_by': 'height',
+                'sort_order': 'asc',
+            },
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -56,7 +72,12 @@ class TestSwapiDataSort:
         self, client: TestClient
     ) -> None:
         response = client.get(
-            f'{self.API_URL}?resource=people&sort_by=height&sort_order=desc'
+            self.API_URL,
+            params={
+                'resource': 'people',
+                'sort_by': 'height',
+                'sort_order': 'desc',
+            },
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -69,7 +90,12 @@ class TestSwapiDataSort:
         self, client: TestClient
     ) -> None:
         response = client.get(
-            f'{self.API_URL}?resource=people&sort_by=mass&sort_order=asc'
+            self.API_URL,
+            params={
+                'resource': 'people',
+                'sort_by': 'mass',
+                'sort_order': 'asc',
+            },
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -81,7 +107,10 @@ class TestSwapiDataSort:
     def test_should_default_to_ascending_order(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{self.API_URL}?resource=people&sort_by=name')
+        response = client.get(
+            self.API_URL,
+            params={'resource': 'people', 'sort_by': 'name'},
+        )
 
         assert response.status_code == HTTPStatus.OK.value
         results = response.json()['results']
@@ -97,7 +126,7 @@ class TestSwapiDataSort:
     def test_should_not_sort_when_sort_by_not_provided(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{self.API_URL}?resource=people')
+        response = client.get(self.API_URL, params={'resource': 'people'})
 
         assert response.status_code == HTTPStatus.OK.value
         results = response.json()['results']
@@ -112,8 +141,10 @@ class TestSwapiDataSort:
     def test_should_error_when_sort_by_used_with_id(
         self, client: TestClient
     ) -> None:
-        url = f'{self.API_URL}?resource=people&id=1&sort_by=name'
-        response = client.get(url)
+        response = client.get(
+            self.API_URL,
+            params={'resource': 'people', 'id': 1, 'sort_by': 'name'},
+        )
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY.value
         errors = response.json()['detail']
@@ -123,7 +154,12 @@ class TestSwapiDataSort:
         self, client: TestClient
     ) -> None:
         response = client.get(
-            f'{self.API_URL}?resource=people&sort_by=name&sort_order=invalid'
+            self.API_URL,
+            params={
+                'resource': 'people',
+                'sort_by': 'name',
+                'sort_order': 'invalid',
+            },
         )
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY.value
