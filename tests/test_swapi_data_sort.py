@@ -3,14 +3,13 @@ from http import HTTPStatus
 import pytest
 from fastapi.testclient import TestClient
 
-API_URL = '/api/v1/swapi/'
-
 
 class TestSwapiDataSort:
+    API_URL = '/api/v1/swapi/'
     @pytest.mark.usefixtures('mock_people_for_sort')
     def test_should_sort_by_name_ascending(self, client: TestClient) -> None:
         response = client.get(
-            f'{API_URL}?resource=people&sort_by=name&sort_order=asc'
+            f'{self.API_URL}?resource=people&sort_by=name&sort_order=asc'
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -26,7 +25,7 @@ class TestSwapiDataSort:
     @pytest.mark.usefixtures('mock_people_for_sort')
     def test_should_sort_by_name_descending(self, client: TestClient) -> None:
         response = client.get(
-            f'{API_URL}?resource=people&sort_by=name&sort_order=desc'
+            f'{self.API_URL}?resource=people&sort_by=name&sort_order=desc'
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -44,7 +43,7 @@ class TestSwapiDataSort:
         self, client: TestClient
     ) -> None:
         response = client.get(
-            f'{API_URL}?resource=people&sort_by=height&sort_order=asc'
+            f'{self.API_URL}?resource=people&sort_by=height&sort_order=asc'
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -57,7 +56,7 @@ class TestSwapiDataSort:
         self, client: TestClient
     ) -> None:
         response = client.get(
-            f'{API_URL}?resource=people&sort_by=height&sort_order=desc'
+            f'{self.API_URL}?resource=people&sort_by=height&sort_order=desc'
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -70,7 +69,7 @@ class TestSwapiDataSort:
         self, client: TestClient
     ) -> None:
         response = client.get(
-            f'{API_URL}?resource=people&sort_by=mass&sort_order=asc'
+            f'{self.API_URL}?resource=people&sort_by=mass&sort_order=asc'
         )
 
         assert response.status_code == HTTPStatus.OK.value
@@ -82,7 +81,7 @@ class TestSwapiDataSort:
     def test_should_default_to_ascending_order(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{API_URL}?resource=people&sort_by=name')
+        response = client.get(f'{self.API_URL}?resource=people&sort_by=name')
 
         assert response.status_code == HTTPStatus.OK.value
         results = response.json()['results']
@@ -98,7 +97,7 @@ class TestSwapiDataSort:
     def test_should_not_sort_when_sort_by_not_provided(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{API_URL}?resource=people')
+        response = client.get(f'{self.API_URL}?resource=people')
 
         assert response.status_code == HTTPStatus.OK.value
         results = response.json()['results']
@@ -113,21 +112,18 @@ class TestSwapiDataSort:
     def test_should_error_when_sort_by_used_with_id(
         self, client: TestClient
     ) -> None:
-        response = client.get(
-            f'{API_URL}?resource=people&id=1&sort_by=name'
-        )
+        url = f'{self.API_URL}?resource=people&id=1&sort_by=name'
+        response = client.get(url)
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY.value
         errors = response.json()['detail']
-        assert any(
-            'Cannot use sort_by with id' in str(e) for e in errors
-        )
+        assert any('Cannot use sort_by with id' in str(e) for e in errors)
 
     def test_should_error_when_invalid_sort_order(
         self, client: TestClient
     ) -> None:
         response = client.get(
-            f'{API_URL}?resource=people&sort_by=name&sort_order=invalid'
+            f'{self.API_URL}?resource=people&sort_by=name&sort_order=invalid'
         )
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY.value

@@ -13,10 +13,9 @@ from tests.mock_data import (
     VEHICLE_14,
 )
 
-API_URL = '/api/v1/swapi/'
-
 
 class TestSwapiDataService:
+    API_URL = '/api/v1/swapi/'
     @pytest.mark.usefixtures('mock_people_list')
     def test_should_return_data_for_valid_resource(
         self, client: TestClient
@@ -28,7 +27,7 @@ class TestSwapiDataService:
             'results': [LUKE_SKYWALKER, ANAKIN_SKYWALKER],
         }
 
-        response = client.get(f'{API_URL}?resource=people')
+        response = client.get(f'{self.API_URL}?resource=people')
 
         assert response.status_code == HTTPStatus.OK.value
         assert response.json() == expected_data
@@ -37,7 +36,7 @@ class TestSwapiDataService:
     def test_should_return_data_for_resource_with_id(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{API_URL}?resource=people&id=1')
+        response = client.get(f'{self.API_URL}?resource=people&id=1')
 
         assert response.status_code == HTTPStatus.OK.value
         assert response.json() == LUKE_SKYWALKER
@@ -53,7 +52,7 @@ class TestSwapiDataService:
             'results': [LUKE_SKYWALKER],
         }
 
-        response = client.get(f'{API_URL}?resource=people&search=luke')
+        response = client.get(f'{self.API_URL}?resource=people&search=luke')
 
         assert response.status_code == HTTPStatus.OK.value
         assert response.json() == expected_data
@@ -69,7 +68,7 @@ class TestSwapiDataService:
             'results': [ANAKIN_SKYWALKER],
         }
 
-        response = client.get(f'{API_URL}?resource=people&page=2')
+        response = client.get(f'{self.API_URL}?resource=people&page=2')
 
         assert response.status_code == HTTPStatus.OK.value
         assert response.json() == expected_data
@@ -78,7 +77,7 @@ class TestSwapiDataService:
     def test_should_return_not_found_error_on_404(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{API_URL}?resource=people&id=999')
+        response = client.get(f'{self.API_URL}?resource=people&id=999')
 
         assert response.status_code == HTTPStatus.NOT_FOUND.value
         assert response.json() == {
@@ -90,7 +89,7 @@ class TestSwapiDataService:
     def test_should_return_bad_request_error_on_400(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{API_URL}?resource=people')
+        response = client.get(f'{self.API_URL}?resource=people')
 
         assert response.status_code == HTTPStatus.BAD_REQUEST.value
         assert response.json() == {
@@ -102,7 +101,7 @@ class TestSwapiDataService:
     def test_should_return_method_not_allowed_error_on_405(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{API_URL}?resource=people')
+        response = client.get(f'{self.API_URL}?resource=people')
 
         assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED.value
         assert response.json() == {
@@ -114,7 +113,7 @@ class TestSwapiDataService:
     def test_should_return_internal_server_error_on_unknown_status(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{API_URL}?resource=people')
+        response = client.get(f'{self.API_URL}?resource=people')
 
         assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR.value
         assert response.json() == {
@@ -124,7 +123,8 @@ class TestSwapiDataService:
 
     @pytest.mark.usefixtures('mock_person_with_expand')
     def test_should_expand_hateoas_links(self, client: TestClient) -> None:
-        response = client.get(f'{API_URL}?resource=people&id=1&expand=true')
+        url = f'{self.API_URL}?resource=people&id=1&expand=true'
+        response = client.get(url)
 
         assert response.status_code == HTTPStatus.OK.value
         data = response.json()
@@ -139,7 +139,8 @@ class TestSwapiDataService:
     def test_should_not_expand_when_expand_is_false(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{API_URL}?resource=people&id=1&expand=false')
+        url = f'{self.API_URL}?resource=people&id=1&expand=false'
+        response = client.get(url)
 
         assert response.status_code == HTTPStatus.OK.value
         data = response.json()
@@ -149,7 +150,8 @@ class TestSwapiDataService:
     def test_should_handle_expand_fetch_error_gracefully(
         self, client: TestClient
     ) -> None:
-        response = client.get(f'{API_URL}?resource=people&id=1&expand=true')
+        url = f'{self.API_URL}?resource=people&id=1&expand=true'
+        response = client.get(url)
 
         assert response.status_code == HTTPStatus.OK.value
         data = response.json()
