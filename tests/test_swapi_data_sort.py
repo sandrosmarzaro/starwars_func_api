@@ -148,7 +148,10 @@ class TestSwapiDataSort:
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY.value
         errors = response.json()['detail']
-        assert any('Cannot use sort_by with id' in str(e) for e in errors)
+        assert any(
+            'Cannot use id with page, search and sort' in str(e)
+            for e in errors
+        )
 
     def test_should_error_when_invalid_sort_order(
         self, client: TestClient

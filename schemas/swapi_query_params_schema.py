@@ -32,10 +32,7 @@ class SwapiQueryParams(BaseModel):
 
     @model_validator(mode='after')
     def validate_query_combations(self) -> 'SwapiQueryParams':
-        if self.id and (self.page or self.search):
-            msg = 'Cannot use id with page or search'
-            raise ValueError(msg)
-        if self.id and self.sort_by:
-            msg = 'Cannot use sort_by with id (single resource)'
+        if self.id and (self.page or self.search or self.sort_by):
+            msg = 'Cannot use id with page, search and sort'
             raise ValueError(msg)
         return self
