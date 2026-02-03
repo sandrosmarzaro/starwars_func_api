@@ -10,6 +10,10 @@ class SwapiQueryParams(BaseModel):
     id: PositiveInt | None = Field(default=None, examples=[1, 2, 3])
     page: PositiveInt | None = Field(default=None, examples=[1, 2, 3])
     search: str | None = Field(default=None, examples=['skywalker', 'jedi'])
+    expand: bool = Field(
+        default=False,
+        description='Expand first-level HATEOAS links with actual data',
+    )
 
     @model_validator(mode='after')
     def validate_query_combations(self) -> 'SwapiQueryParams':
