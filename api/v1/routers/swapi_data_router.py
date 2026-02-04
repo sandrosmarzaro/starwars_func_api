@@ -12,6 +12,7 @@ from exceptions.errors import (
 )
 from schemas.examples.swapi_router_examples import SWAPI_EXAMPLES
 from schemas.swapi_query_params_schema import SwapiQueryParams
+from services.auth_service import verify_api_key
 from services.swapi_data_service import SwapiDataService
 
 SWAPI_RESPONSES: dict[int | str, dict[str, Any]] = {
@@ -40,6 +41,7 @@ SWAPI_RESPONSES: dict[int | str, dict[str, Any]] = {
 router = APIRouter(
     prefix='/swapi',
     tags=['swapi'],
+    dependencies=[Depends(verify_api_key)],
 )
 
 
