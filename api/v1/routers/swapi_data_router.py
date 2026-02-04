@@ -46,7 +46,7 @@ router = APIRouter(
 
 
 @router.get(
-    '/',
+    '',
     summary='Query SWAPI resources',
     description='Fetch data from Star Wars API. '
     'Supports listing, filtering by ID, searching, and pagination.',
