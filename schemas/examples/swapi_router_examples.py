@@ -21,6 +21,30 @@ SWAPI_EXAMPLES: dict[str, Example] = {
         'description': 'Get second page of planets',
         'value': {'resource': 'planets', 'page': 2},
     },
+    'expand_all': {
+        'summary': 'Expand all HATEOAS links',
+        'description': 'Get person with all related resources expanded',
+        'value': {'resource': 'people', 'id': 1, 'expand': 'all'},
+    },
+    'expand_specific': {
+        'summary': 'Expand specific fields',
+        'description': 'Get person with homeworld and films expanded',
+        'value': {'resource': 'people', 'id': 1, 'expand': 'homeworld,films'},
+    },
+    'sort_asc': {
+        'summary': 'Sort ascending',
+        'description': 'Get people sorted by name ascending',
+        'value': {'resource': 'people', 'sort_by': 'name'},
+    },
+    'sort_desc': {
+        'summary': 'Sort descending',
+        'description': 'Get people sorted by height descending',
+        'value': {
+            'resource': 'people',
+            'sort_by': 'height',
+            'sort_order': 'desc',
+        },
+    },
     'list_films': {
         'summary': 'List films',
         'description': 'Get all Star Wars films',
