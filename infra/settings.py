@@ -13,6 +13,11 @@ class _Settings(BaseSettings):
     CLOUD_FUNC_URL: str = ''
     API_GATEWAY_URL: str = ''
 
+    CACHE_ENABLED: bool = False
+    UPSTASH_REDIS_REST_URL: str = ''
+    UPSTASH_REDIS_REST_TOKEN: str = ''
+    CACHE_TTL_SECONDS: int = 86400
+
 
 @lru_cache
 def _get_settings() -> _Settings:
