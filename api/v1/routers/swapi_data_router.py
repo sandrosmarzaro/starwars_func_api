@@ -12,10 +12,16 @@ from exceptions.errors import (
 )
 from schemas.examples.swapi_router_examples import SWAPI_EXAMPLES
 from schemas.swapi_query_params_schema import SwapiQueryParams
+from schemas.swapi_resources_schema import SwapiResponse
 from services.auth_service import verify_api_key
 from services.swapi_data_service import SwapiDataService
 
 SWAPI_RESPONSES: dict[int | str, dict[str, Any]] = {
+    HTTPStatus.OK: {
+        'model': SwapiResponse,
+        'description': 'SWAPI resource data. '
+        'See [SWAPI docs](https://swapi.dev/documentation) for details.',
+    },
     HTTPStatus.UNAUTHORIZED: {
         'model': UnauthorizedError.schema(),
         'description': 'Invalid or missing API key',
@@ -50,7 +56,6 @@ router = APIRouter(
     summary='Query SWAPI resources',
     description='Fetch data from Star Wars API. '
     'Supports listing, filtering by ID, searching, sorting, and pagination.',
-    response_description='SWAPI resource data',
     responses=SWAPI_RESPONSES,
 )
 async def get_swapi_data(
