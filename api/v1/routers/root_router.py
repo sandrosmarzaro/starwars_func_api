@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from infra.settings import settings
 from schemas.swapi_query_params_schema import SwapiResource
+from services.auth_service import verify_api_key
 
-router = APIRouter(tags=['root'])
+router = APIRouter(tags=['root'], dependencies=[Depends(verify_api_key)])
 
 
 @router.get(
