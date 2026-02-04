@@ -49,7 +49,7 @@ router = APIRouter(
     '',
     summary='Query SWAPI resources',
     description='Fetch data from Star Wars API. '
-    'Supports listing, filtering by ID, searching, and pagination.',
+    'Supports listing, filtering by ID, searching, sorting, and pagination.',
     response_description='SWAPI resource data',
     responses=SWAPI_RESPONSES,
 )

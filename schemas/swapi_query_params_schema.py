@@ -12,10 +12,25 @@ class SortOrder(str, Enum):
 class SwapiQueryParams(BaseModel):
     resource: Literal[
         'films', 'people', 'planets', 'species', 'starships', 'vehicles'
-    ] = Field(examples=['people', 'planets', 'films'])
-    id: PositiveInt | None = Field(default=None, examples=[1, 2, 3])
-    page: PositiveInt | None = Field(default=None, examples=[1, 2, 3])
-    search: str | None = Field(default=None, examples=['skywalker', 'jedi'])
+    ] = Field(
+        description='The Star Wars resource type to query',
+        examples=['people', 'planets', 'films'],
+    )
+    id: PositiveInt | None = Field(
+        default=None,
+        description='Unique identifier to retrieve a specific resource',
+        examples=[1, 2, 3],
+    )
+    page: PositiveInt | None = Field(
+        default=None,
+        description='Page number for paginated results',
+        examples=[1, 2, 3],
+    )
+    search: str | None = Field(
+        default=None,
+        description='Search term to filter results by name or title',
+        examples=['skywalker', 'jedi'],
+    )
     expand: str | None = Field(
         default=None,
         description='Expand HATEOAS links. Use "all" to expand all fields, '
