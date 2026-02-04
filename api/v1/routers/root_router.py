@@ -1,10 +1,9 @@
 from fastapi import APIRouter
 
 from infra.settings import settings
+from schemas.swapi_query_params_schema import SwapiResource
 
 router = APIRouter(tags=['root'])
-
-RESOURCES = ['films', 'people', 'planets', 'species', 'starships', 'vehicles']
 
 
 @router.get(
@@ -18,5 +17,5 @@ async def get_root() -> dict[str, str]:
     swapi_url = f'{base_url}/api/v1/swapi?resource='
     return {
         'documentation': f'{base_url}/docs',
-        **{resource: f'{swapi_url}{resource}' for resource in RESOURCES},
+        **{r.value: f'{swapi_url}{r.value}' for r in SwapiResource},
     }

@@ -1,7 +1,15 @@
 from enum import Enum
-from typing import Literal
 
 from pydantic import BaseModel, Field, PositiveInt, model_validator
+
+
+class SwapiResource(str, Enum):
+    FILMS = 'films'
+    PEOPLE = 'people'
+    PLANETS = 'planets'
+    SPECIES = 'species'
+    STARSHIPS = 'starships'
+    VEHICLES = 'vehicles'
 
 
 class SortOrder(str, Enum):
@@ -10,9 +18,7 @@ class SortOrder(str, Enum):
 
 
 class SwapiQueryParams(BaseModel):
-    resource: Literal[
-        'films', 'people', 'planets', 'species', 'starships', 'vehicles'
-    ] = Field(
+    resource: SwapiResource = Field(
         description='The Star Wars resource type to query',
         examples=['people', 'planets', 'films'],
     )

@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from api.v1.routers.root_router import RESOURCES
+from schemas.swapi_query_params_schema import SwapiResource
 
 
 class TestRoot:
@@ -25,8 +25,8 @@ class TestRoot:
         swapi_url = f'{mock_gateway_url}/api/v1/swapi?resource='
 
         assert data['documentation'] == f'{mock_gateway_url}/docs'
-        for resource in RESOURCES:
-            assert data[resource] == f'{swapi_url}{resource}'
+        for resource in SwapiResource:
+            assert data[resource.value] == f'{swapi_url}{resource.value}'
 
     def test_should_return_correct_number_of_endpoints(
         self, client: TestClient
@@ -35,7 +35,7 @@ class TestRoot:
 
         assert response.status_code == HTTPStatus.OK
         data = response.json()
-        expected_count = len(RESOURCES) + 1  # resources + documentation
+        expected_count = len(SwapiResource) + 1  # resources + documentation
         assert len(data) == expected_count
 
     def test_documentation_should_be_first_key(

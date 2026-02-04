@@ -9,6 +9,7 @@ from respx import MockRouter
 
 from infra.settings import settings
 from main import app
+from schemas.swapi_query_params_schema import SwapiResource
 from tests.mock_data import (
     ANAKIN_SKYWALKER,
     ARVEL_CRYNYD,
@@ -47,16 +48,8 @@ def mock_people_list(respx_mock: MockRouter) -> MockRouter:
 
 @pytest.fixture
 def mock_all_resources(respx_mock: MockRouter) -> MockRouter:
-    resources = [
-        'films',
-        'people',
-        'planets',
-        'species',
-        'starships',
-        'vehicles',
-    ]
-    for resource in resources:
-        url = urljoin(BASE_URL, f'{resource}/')
+    for resource in SwapiResource:
+        url = urljoin(BASE_URL, f'{resource.value}/')
         data = {'count': 1, 'results': []}
         respx_mock.get(url).mock(
             return_value=httpx.Response(HTTPStatus.OK, json=data)

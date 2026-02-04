@@ -3,6 +3,8 @@ from http import HTTPStatus
 import pytest
 from fastapi.testclient import TestClient
 
+from schemas.swapi_query_params_schema import SwapiResource
+
 
 class TestSwapiSchema:
     API_URL = '/api/v1/swapi/'
@@ -17,7 +19,7 @@ class TestSwapiSchema:
         errors = response.json()['detail']
         assert len(errors) == 1
         assert errors[0]['loc'] == ['query', 'resource']
-        assert errors[0]['type'] == 'literal_error'
+        assert errors[0]['type'] == 'enum'
 
     def test_should_error_when_not_passed_resource(
         self, client: TestClient
@@ -88,14 +90,8 @@ class TestSwapiSchema:
     def test_validate_successful_resources_request(
         self, client: TestClient
     ) -> None:
-        valid_resources = [
-            'films',
-            'people',
-            'planets',
-            'species',
-            'starships',
-            'vehicles',
-        ]
-        for resource in valid_resources:
-            response = client.get(self.API_URL, params={'resource': resource})
+        for resource in SwapiResource:
+            response = client.get(
+                self.API_URL, params={'resource': resource.value}
+            )
             assert response.status_code == HTTPStatus.OK.value

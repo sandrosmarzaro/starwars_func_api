@@ -17,7 +17,7 @@ class SwapiDataService:
         self.sort_service = SortSwapiDataService()
 
     async def get_swapi_data(self, params: SwapiQueryParams) -> dict[str, Any]:
-        resource_url = urljoin(self.base_url, f'{params.resource}/')
+        resource_url = urljoin(self.base_url, f'{params.resource.value}/')
 
         if params.id:
             resource_url = urljoin(resource_url, str(params.id))
