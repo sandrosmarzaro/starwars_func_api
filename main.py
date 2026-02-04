@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.v1.routers.swapi_data_router import router as swapi_router
 from exceptions.error_handler import add_exceptions_handler
+from infra.settings import settings
 
 openapi_tags = [
     {
@@ -37,7 +38,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=[
+        settings.API_GATEWAY_URL,
+        settings.CLOUD_FUNC_URL,
+        'http://localhost:8000',
+    ],
     allow_credentials=True,
     allow_methods=['GET', 'OPTIONS'],
     allow_headers=['Content-Type', 'X-API-Key'],

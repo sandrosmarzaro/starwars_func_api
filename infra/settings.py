@@ -10,7 +10,8 @@ class _Settings(BaseSettings):
         extra='ignore',
     )
     SWAPI_BASE_URL: str = 'https://swapi.dev/api/'
-    API_KEY: str = 'x-api-key'
+    CLOUD_FUNC_URL: str = ''
+    API_GATEWAY_URL: str = ''
 
 
 @lru_cache
