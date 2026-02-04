@@ -9,11 +9,13 @@ dependencies = [
   "httpx>=0.28.1",
   "loguru>=0.7.3",
   "pydantic-settings>=2.12.0",
+  "upstash-redis>=1.1.0",
   "uvicorn>=0.34.0",
 ]
 
 [dependency-groups]
 dev = [
+  "fakeredis>=2.26.0",
   "pre-commit>=4.5.1",
   "pyright>=1.1.408",
   "pytest>=9.0.2",
