@@ -96,9 +96,7 @@ class TestCacheOperationsDisabled:
 
 
 class TestCacheOperationsEnabled:
-    def test_set_and_get_data(
-        self, cache_repository: CacheRepository
-    ) -> None:
+    def test_set_and_get_data(self, cache_repository: CacheRepository) -> None:
         params = SwapiQueryParams(resource=SwapiResource.PEOPLE)
         data = {'count': 82, 'results': [{'name': 'Luke'}]}
 
