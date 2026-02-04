@@ -1,11 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.v1.routers.root_router import router as root_router
 from api.v1.routers.swapi_data_router import router as swapi_router
 from exceptions.error_handler import add_exceptions_handler
 from infra.settings import settings
 
 openapi_tags = [
+    {
+        'name': 'root',
+        'description': 'API root endpoint',
+    },
     {
         'name': 'swapi',
         'description': 'Operations to query Star Wars API (SWAPI) resources',
@@ -51,4 +56,5 @@ app.add_middleware(
 
 add_exceptions_handler(app)
 
+app.include_router(root_router)
 app.include_router(swapi_router, prefix='/api/v1')
