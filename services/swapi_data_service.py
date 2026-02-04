@@ -25,12 +25,12 @@ class SwapiDataService:
     async def get_swapi_data(
         self, params: SwapiQueryParams
     ) -> dict[str, object]:
-        cached_data = self.cache_repository.get(params)
+        cached_data = await self.cache_repository.get(params)
         if cached_data is not None:
             data = cached_data
         else:
             data = await self._fetch_from_swapi(params)
-            self.cache_repository.set(params, data)
+            await self.cache_repository.set(params, data)
 
         if params.expand:
             async with httpx.AsyncClient() as client:

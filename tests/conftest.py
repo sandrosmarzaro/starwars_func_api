@@ -1,10 +1,11 @@
-from collections.abc import Generator, Iterator
+from collections.abc import AsyncGenerator, Generator
 from http import HTTPStatus
 from urllib.parse import urljoin
 
 import httpx
 import pytest
-from fakeredis import FakeRedis
+import pytest_asyncio
+from fakeredis.aioredis import FakeRedis as FakeAsyncRedis
 from fastapi.testclient import TestClient
 from respx import MockRouter
 
@@ -28,29 +29,29 @@ from tests.mock_data import (
 BASE_URL = settings.SWAPI_BASE_URL
 
 
-@pytest.fixture
-def redis_client() -> Generator[FakeRedis]:
-    client: FakeRedis = FakeRedis(decode_responses=True)
+@pytest_asyncio.fixture
+async def redis_client() -> AsyncGenerator[FakeAsyncRedis]:
+    client: FakeAsyncRedis = FakeAsyncRedis(decode_responses=True)
     yield client
-    client.close()
+    await client.aclose()
 
 
 @pytest.fixture
-def cache_repository(redis_client: FakeRedis) -> CacheRepository:
+def cache_repository(redis_client: FakeAsyncRedis) -> CacheRepository:
     repo = CacheRepository(client=redis_client)  # type: ignore[arg-type]
     repo.enabled = True
     return repo
 
 
 @pytest.fixture
-def client(redis_client: FakeRedis) -> Iterator[TestClient]:
-    def get_redis_client_override() -> FakeRedis:  # type: ignore[return-value]
+def client(redis_client: FakeAsyncRedis) -> Generator[TestClient]:
+    def get_redis_client_override() -> FakeAsyncRedis:  # type: ignore[return-value]
         return redis_client
 
-    app.dependency_overrides[get_redis_client] = get_redis_client_override
     with TestClient(app) as client:
+        app.dependency_overrides[get_redis_client] = get_redis_client_override
         yield client
-    app.dependency_overrides.clear()
+        app.dependency_overrides.clear()
 
 
 @pytest.fixture

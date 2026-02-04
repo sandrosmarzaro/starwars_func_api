@@ -1,6 +1,6 @@
 import json
 
-from fakeredis import FakeRedis
+from fakeredis.aioredis import FakeRedis as FakeAsyncRedis
 
 from repositories.cache_repository import CacheRepository
 from schemas.swapi_query_params_schema import SwapiQueryParams, SwapiResource
@@ -74,48 +74,50 @@ class TestCacheKeyGeneration:
 
 
 class TestCacheOperationsDisabled:
-    def test_get_returns_none_when_disabled(
+    async def test_get_returns_none_when_disabled(
         self, cache_repository: CacheRepository
     ) -> None:
         cache_repository.enabled = False
         params = SwapiQueryParams(resource=SwapiResource.PEOPLE)
 
-        result = cache_repository.get(params)
+        result = await cache_repository.get(params)
 
         assert result is None
 
-    def test_set_returns_false_when_disabled(
+    async def test_set_returns_false_when_disabled(
         self, cache_repository: CacheRepository
     ) -> None:
         cache_repository.enabled = False
         params = SwapiQueryParams(resource=SwapiResource.PEOPLE)
 
-        result = cache_repository.set(params, {'count': 1})
+        result = await cache_repository.set(params, {'count': 1})
 
         assert result is False
 
 
 class TestCacheOperationsEnabled:
-    def test_set_and_get_data(self, cache_repository: CacheRepository) -> None:
+    async def test_set_and_get_data(
+        self, cache_repository: CacheRepository
+    ) -> None:
         params = SwapiQueryParams(resource=SwapiResource.PEOPLE)
         data = {'count': 82, 'results': [{'name': 'Luke'}]}
 
-        set_result = cache_repository.set(params, data)
-        get_result = cache_repository.get(params)
+        set_result = await cache_repository.set(params, data)
+        get_result = await cache_repository.get(params)
 
         assert set_result is True
         assert get_result == data
 
-    def test_get_returns_none_on_cache_miss(
+    async def test_get_returns_none_on_cache_miss(
         self, cache_repository: CacheRepository
     ) -> None:
         params = SwapiQueryParams(resource=SwapiResource.VEHICLES)
 
-        result = cache_repository.get(params)
+        result = await cache_repository.get(params)
 
         assert result is None
 
-    def test_different_params_have_different_cache(
+    async def test_different_params_have_different_cache(
         self, cache_repository: CacheRepository
     ) -> None:
         params1 = SwapiQueryParams(resource=SwapiResource.PEOPLE, page=1)
@@ -123,13 +125,13 @@ class TestCacheOperationsEnabled:
         data1 = {'count': 82, 'page': 1}
         data2 = {'count': 82, 'page': 2}
 
-        cache_repository.set(params1, data1)
-        cache_repository.set(params2, data2)
+        await cache_repository.set(params1, data1)
+        await cache_repository.set(params2, data2)
 
-        assert cache_repository.get(params1) == data1
-        assert cache_repository.get(params2) == data2
+        assert await cache_repository.get(params1) == data1
+        assert await cache_repository.get(params2) == data2
 
-    def test_same_params_different_expand_share_cache(
+    async def test_same_params_different_expand_share_cache(
         self, cache_repository: CacheRepository
     ) -> None:
         params_no_expand = SwapiQueryParams(resource=SwapiResource.PEOPLE)
@@ -138,21 +140,21 @@ class TestCacheOperationsEnabled:
         )
         data = {'count': 82, 'results': []}
 
-        cache_repository.set(params_no_expand, data)
-        result = cache_repository.get(params_with_expand)
+        await cache_repository.set(params_no_expand, data)
+        result = await cache_repository.get(params_with_expand)
 
         assert result == data
 
-    def test_cache_stores_json_correctly(
-        self, cache_repository: CacheRepository, redis_client: FakeRedis
+    async def test_cache_stores_json_correctly(
+        self, cache_repository: CacheRepository, redis_client: FakeAsyncRedis
     ) -> None:
         params = SwapiQueryParams(resource=SwapiResource.FILMS)
         data = {'count': 6, 'results': [{'title': 'A New Hope'}]}
 
-        cache_repository.set(params, data)
+        await cache_repository.set(params, data)
 
         cache_key = cache_repository.build_cache_key(params)
-        raw_value = redis_client.get(cache_key)
+        raw_value = await redis_client.get(cache_key)
         assert raw_value is not None
         assert isinstance(raw_value, str)
         assert json.loads(raw_value) == data
