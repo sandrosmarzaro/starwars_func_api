@@ -1,14 +1,17 @@
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
 from http import HTTPStatus
 from urllib.parse import urljoin
 
 import httpx
 import pytest
+from fakeredis import FakeRedis
 from fastapi.testclient import TestClient
 from respx import MockRouter
 
+from infra.redis_client import get_redis_client
 from infra.settings import settings
 from main import app
+from repositories.cache_repository import CacheRepository
 from schemas.swapi_query_params_schema import SwapiResource
 from tests.mock_data import (
     ANAKIN_SKYWALKER,
@@ -26,9 +29,28 @@ BASE_URL = settings.SWAPI_BASE_URL
 
 
 @pytest.fixture
-def client() -> Iterator[TestClient]:
+def redis_client() -> Generator[FakeRedis]:
+    client: FakeRedis = FakeRedis(decode_responses=True)
+    yield client
+    client.close()
+
+
+@pytest.fixture
+def cache_repository(redis_client: FakeRedis) -> CacheRepository:
+    repo = CacheRepository(client=redis_client)  # type: ignore[arg-type]
+    repo.enabled = True
+    return repo
+
+
+@pytest.fixture
+def client(redis_client: FakeRedis) -> Iterator[TestClient]:
+    def get_redis_client_override() -> FakeRedis:  # type: ignore[return-value]
+        return redis_client
+
+    app.dependency_overrides[get_redis_client] = get_redis_client_override
     with TestClient(app) as client:
         yield client
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
