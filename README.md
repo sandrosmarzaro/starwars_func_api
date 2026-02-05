@@ -28,6 +28,7 @@ LSP, linter, formater e typer, para padronização de código seguindo a PEP 8.
 Gerenciamento de ambientes virtuais e de dependências de forma determinística.
 - [HTTPX](https://www.python-httpx.org/) e [Respx](https://lundberg.github.io/respx/)
 Para as requisições e mocks da SWAPI.
+- [Upstash Redis](https://github.com/upstash/redis-py) e [FakeRedis](https://pypi.org/project/fakeredis/) para implementação e mock de cache.
 - [Pre Commit](https://pre-commit.com/) e [GitHub Actions](https://github.com/features/actions)
 Pipelines de CI para verificação do código antes e depois do git push.
 - [Taskipy](https://github.com/taskipy/taskipy)
@@ -224,3 +225,4 @@ task run # Use Taskipy to run API
 - WAF para filtragem de requisições maliciosas como de bots ou DDoS.
 - Disponibilizar um endpoint com GraphQL, dessa forma pode-se obter informações específicas de vários recursos sem possuir um payload de resposta enorme.
 - Avaliar o uso de uma Event-Driven Architecture como Pub/Sub, usando os Cloud Events do Functions Framework, ou mais escalabilidade ainda com Celery.
+
